@@ -1,0 +1,58 @@
+branches:
+  except:
+    gh-pages
+
+env:
+  global:
+    - GH_REPO_NAME: Arion
+    - GH_REPO_REF: github.com/Godlike/Arion.git
+    - BUILD_DIR: build
+
+sudo: required
+os: linux
+dist: trusty
+language: cpp
+compiler: gcc
+
+matrix:
+  include:
+  - compiler: gcc
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-6
+    env:
+    - COMPILER=g++-6
+  - compiler: clang
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.9
+        packages:
+        - libc++-dev
+        - clang-3.9
+    env:
+    - COMPILER=clang++-3.9
+    - COMPILER_FLAGS=-stdlib=libc++
+
+git:
+  submodules: false
+
+before_install:
+- sudo apt-get -qq update
+- git submodule update --init --recursive
+
+script:
+- cd $TRAVIS_BUILD_DIR
+- chmod +x travisBuildScript.sh
+- ./travisBuildScript.sh
+
+notifications:
+  email:
+    recipients:
+    - ilia.glushchenko@gmail.com
+    on_success: change
+    on_failure: always

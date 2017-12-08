@@ -1,0 +1,10 @@
+build*
+.build*
+.idea*
+.vscode
+.vs
+*.user
+*.sqlite
+*.json
+*.suo
+*.db
