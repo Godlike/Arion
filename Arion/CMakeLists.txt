@@ -38,6 +38,7 @@ set(ARION_HEADERS
     include/Arion/GilbertJohnsonKeerthi.hpp
     include/Arion/ExpandingPolytopeAlgorithm.hpp
     include/Arion/SimpleShapeIntersectionDetector.hpp
+    include/Arion/BoundingVolumes.hpp
 )
 set(ARION_SOURCES
     sources/Intersection.cpp
@@ -45,6 +46,7 @@ set(ARION_SOURCES
     sources/ConfigurationSpaceObject.cpp
     sources/GilbertJohnsonKeerthi.cpp
     sources/SimpleShapeIntersectionDetector.cpp
+    sources/BoundingVolumes.cpp
 )
 
 add_library(${ARION_LIB}
