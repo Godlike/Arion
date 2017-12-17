@@ -157,10 +157,10 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
     } while (epona::fp::IsGreater(supportVertexDistance, distance));
 
     return {
+        cso::Support(aShape, direction) - aShape.centerOfMass,
+        cso::Support(bShape, -direction) - bShape.centerOfMass,
         cso::Support(aShape, direction),
         cso::Support(bShape, -direction),
-        cso::Support(aShape, direction) + aShape.centerOfMass,
-        cso::Support(bShape, -direction) + bShape.centerOfMass,
         direction,
         distance
     };
