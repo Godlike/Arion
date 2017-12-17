@@ -585,9 +585,10 @@ inline bool CalculateIntersection<Plane, Box>(SimpleShape const* a, SimpleShape 
     });
 
     //Find vertex with most penetration depth
-    uint8_t const closestVertexIndex = static_cast<uint8_t>(std::distance(cache->boxPenetrations.begin(),
-        std::max_element(cache->boxPenetrations.begin(), cache->boxPenetrations.end()))
-    );
+    uint8_t const closestVertexIndex = static_cast<uint8_t>(
+        std::distance(cache->boxPenetrations.begin(),
+            std::max_element(cache->boxPenetrations.begin(), cache->boxPenetrations.end())
+    ));
     cache->boxWorldContactPoint = boxVertices[closestVertexIndex];
 
     return cache->boxPenetrations[closestVertexIndex] >= 0.0;
@@ -631,7 +632,7 @@ template <>
 inline double CalculatePenetration<Plane, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto cache = static_cast<Cache<Plane, Box>*>(cacheBase);
-    return cache->boxPenetrations.back();
+    return *std::max_element(cache->boxPenetrations.begin(), cache->boxPenetrations.end());
 }
 
 /** Sphere, Plane CalculateIntersection specialization */
