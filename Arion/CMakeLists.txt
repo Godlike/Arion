@@ -49,6 +49,20 @@ set(ARION_SOURCES
     sources/BoundingVolumes.cpp
 )
 
+if (MSVC)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/ArionVersionInfo.rc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/ArionVersionInfo.rc
+
+        @ONLY
+    )
+
+    set(ARION_EXTRA
+        ${ARION_EXTRA}
+        ${CMAKE_CURRENT_BINARY_DIR}/ArionVersionInfo.rc
+    )
+endif()
+
 add_library(${ARION_LIB}
     ${ARION_HEADERS}
     ${ARION_SOURCES}
@@ -91,4 +105,27 @@ install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
     COMPONENT arion_headers
     FILES_MATCHING PATTERN "*.hpp"
     PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfigVersion.cmake
+    VERSION ${ARION_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ArionCollisionConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfig.cmake
+
+    @ONLY
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfigVersion.cmake
+    DESTINATION ${ARION_INSTALL_LIBRARY_DIR}
+    COMPONENT arion_headers
 )

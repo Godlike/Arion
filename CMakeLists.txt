@@ -42,3 +42,8 @@ if (ARION_BUILD_TESTS)
     set(CATCH_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/third_party/Catch2)
     add_subdirectory(test)
 endif()
+
+get_directory_property(HAS_PARENT PARENT_DIRECTORY)
+if (HAS_PARENT)
+    set(ARION_COLLISION_LIB ${ARION_LIB} PARENT_SCOPE)
+endif()
