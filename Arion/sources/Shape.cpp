@@ -7,13 +7,14 @@
 
 using namespace arion;
 
-Shape::Shape(glm::dvec3 const& centerOfMass)
+Shape::Shape(glm::dvec3 centerOfMass, glm::dquat orientation)
     : centerOfMass(centerOfMass)
+    , orientation(orientation)
 {
 }
 
-SimpleShape::SimpleShape(glm::dvec3 const& centerOfMass, SimpleShape::Type type)
-    : Shape(centerOfMass)
+SimpleShape::SimpleShape(glm::dvec3 centerOfMass, glm::dquat orientation, SimpleShape::Type type)
+    : Shape(centerOfMass, orientation)
     , type(type)
 {
 }
@@ -23,8 +24,8 @@ Ray::Ray()
 {
 }
 
-Ray::Ray(glm::dvec3 const& centerOfMass, glm::dvec3 const& normal)
-    : SimpleShape(centerOfMass, SimpleShape::Type::RAY)
+Ray::Ray(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::RAY)
     , direction(normal)
 {
 }
@@ -34,8 +35,8 @@ Plane::Plane()
 {
 }
 
-Plane::Plane(glm::dvec3 const& centerOfMass, glm::dvec3 const& normal)
-    : SimpleShape(centerOfMass, SimpleShape::Type::PLANE)
+Plane::Plane(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::PLANE)
     , normal(normal)
 {
 }
@@ -46,9 +47,9 @@ Triangle::Triangle()
 }
 
 Triangle::Triangle(
-    glm::dvec3 const& centerOfMass, glm::dvec3 const& a, glm::dvec3 const& b, glm::dvec3 const& c
+    glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, glm::dvec3 b, glm::dvec3 c
 )
-    : SimpleShape(centerOfMass, SimpleShape::Type::TRIANGLE)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::TRIANGLE)
     , aVertex(a)
     , bVertex(b)
     , cVertex(c)
@@ -67,8 +68,8 @@ Sphere::Sphere()
 {
 }
 
-Sphere::Sphere(glm::dvec3 const& centerOfMass, double r)
-    : SimpleShape(centerOfMass, SimpleShape::Type::SPHERE)
+Sphere::Sphere(glm::dvec3 centerOfMass, glm::dquat orientation, double r)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::SPHERE)
     , radius(r)
 {
 }
@@ -79,8 +80,8 @@ Cone::Cone()
 {
 }
 
-Cone::Cone(glm::dvec3 const& centerOfMass, glm::dvec3 const& a, double r)
-    : SimpleShape(centerOfMass, SimpleShape::Type::CONE)
+Cone::Cone(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, double r)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::CONE)
     , apex(a)
     , radius(r)
 {
@@ -93,9 +94,9 @@ Capsule::Capsule()
 }
 
 Capsule::Capsule(
-    glm::dvec3 const& centerOfMass, glm::dvec3 const& halfHeight, double r
+    glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r
 )
-    : SimpleShape(centerOfMass, SimpleShape::Type::CAPSULE)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::CAPSULE)
     , halfHeight(halfHeight)
     , radius(r)
 {
@@ -108,9 +109,9 @@ Cylinder::Cylinder()
 }
 
 Cylinder::Cylinder(
-    glm::dvec3 const& centerOfMass, glm::dvec3 const& halfHeight, double r
+    glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r
 )
-    : SimpleShape(centerOfMass, SimpleShape::Type::CYLINDER)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::CYLINDER)
     , halfHeight(halfHeight)
     , radius(r)
 {
@@ -122,9 +123,9 @@ Box::Box()
 }
 
 Box::Box(
-    glm::dvec3 const& centerOfMass, glm::dvec3 const& i, glm::dvec3 const& j, glm::dvec3 const& k
+    glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 i, glm::dvec3 j, glm::dvec3 k
 )
-    : SimpleShape(centerOfMass, SimpleShape::Type::BOX)
+    : SimpleShape(centerOfMass, orientation, SimpleShape::Type::BOX)
     , iAxis(i)
     , jAxis(j)
     , kAxis(k)

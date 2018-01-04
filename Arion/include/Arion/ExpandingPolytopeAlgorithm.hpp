@@ -7,6 +7,7 @@
 #define ARION_EPA_HPP
 
 #include <Arion/GilbertJohnsonKeerthi.hpp>
+#include <Arion/Debug.hpp>
 #include <Epona/Analysis.hpp>
 #include <Epona/QuickhullConvexHull.hpp>
 #include <glm/glm.hpp>
@@ -144,13 +145,15 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
             }
         }
 
+        //Debug call
+        debug::Debug::EpaDebugCall(convexHull, polytopeVertices, simplex);
+
         //Endless loop detection
         if (epona::fp::IsEqual(previousDistance, distance))
         {
             break;
         }
         previousDistance = distance;
-
     } while (epona::fp::IsGreater(supportVertexDistance, distance));
 
     return {

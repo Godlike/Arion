@@ -14,8 +14,8 @@ TEST_CASE("Sphere-Sphere Collision", "[collision][sphere]")
     using namespace arion;
 
     SimpleShapeIntersectionDetector detector;
-    Sphere aSphere(glm::dvec3(0, 0, 0), 2.0);
-    Sphere bSphere(glm::dvec3(0, 0, 1), 2.0);
+    Sphere aSphere(glm::dvec3(0, 0, 0), glm::dquat{0, 0, 0, 0}, 2.0);
+    Sphere bSphere(glm::dvec3(0, 0, 1), glm::dquat{0, 0, 0, 0}, 2.0);
 
     REQUIRE(true == detector.CalculateIntersection(&aSphere, &bSphere));
 }

@@ -569,9 +569,11 @@ inline bool CalculateIntersection<Plane, Box>(SimpleShape const* a, SimpleShape 
     //Calculate world space box vertices
     std::array<glm::dvec3, 8> boxVertices;
     epona::CalculateBoxVertices(box->iAxis, box->jAxis, box->kAxis, boxVertices.begin());
-    for (glm::dvec3& veretex : boxVertices)
+    for (glm::dvec3& vertex : boxVertices)
     {
-        veretex += box->centerOfMass;
+        glm::dvec3 const resultVertex = glm::dmat4(glm::toMat4(box->orientation)) 
+            * glm::dvec4{ vertex, 1 } + glm::dvec4{ box->centerOfMass, 1 };
+        vertex = glm::dvec3{ resultVertex.x, resultVertex.y, resultVertex.z };
     }
 
     //Calculate box vertices's distances to the plane
