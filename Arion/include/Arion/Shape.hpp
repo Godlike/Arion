@@ -6,7 +6,9 @@
 #ifndef ARION_SHAPE_HPP
 #define ARION_SHAPE_HPP
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace arion
 {
@@ -17,9 +19,10 @@ class Shape
 {
 public:
     Shape() = default;
-    explicit Shape(glm::dvec3 const& centerOfMass);
+    explicit Shape(glm::dvec3 centerOfMass, glm::dquat orientation = glm::angleAxis(0.0, glm::dvec3(0)));
 
     glm::dvec3 centerOfMass;
+    glm::dquat orientation;
 };
 
 /**
@@ -50,7 +53,7 @@ public:
     {
     }
 
-    SimpleShape(glm::dvec3 const& centerOfMass, Type type);
+    SimpleShape(glm::dvec3 centerOfMass, glm::dquat orientation, Type type);
 };
 
 /** Ray data storage class */
@@ -60,7 +63,7 @@ public:
     glm::dvec3 direction;
 
     Ray();
-    Ray(glm::dvec3 const& centerOfMass, glm::dvec3 const& normal);
+    Ray(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal);
 };
 
 /** Plane data storage class */
@@ -68,7 +71,7 @@ class Plane : public SimpleShape
 {
 public:
     Plane();
-    Plane(glm::dvec3 const& centerOfMass, glm::dvec3 const& normal);
+    Plane(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal);
 
     glm::dvec3 normal;
 };
@@ -78,7 +81,7 @@ class Triangle : public SimpleShape
 {
 public:
     Triangle();
-    Triangle(glm::dvec3 const& centerOfMass, glm::dvec3 const& a, glm::dvec3 const& b, glm::dvec3 const& c);
+    Triangle(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, glm::dvec3 b, glm::dvec3 c);
 
     /** Calculates normal from member vertices and writes it to the normal member field */
     void CalculateNormal();
@@ -94,7 +97,7 @@ class Sphere : public SimpleShape
 {
 public:
     Sphere();
-    Sphere(glm::dvec3 const& centerOfMass, double r);
+    Sphere(glm::dvec3 centerOfMass, glm::dquat orientation, double r);
 
     double radius;
 };
@@ -104,7 +107,7 @@ class Cone : public SimpleShape
 {
 public:
     Cone();
-    Cone(glm::dvec3 const& centerOfMass, glm::dvec3 const& a, double r);
+    Cone(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, double r);
 
     glm::dvec3 apex;
     double radius;
@@ -115,7 +118,7 @@ class Capsule : public SimpleShape
 {
 public:
     Capsule();
-    Capsule(glm::dvec3 const& centerOfMass, glm::dvec3 const& halfHeight, double r);
+    Capsule(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r);
 
     glm::dvec3 halfHeight;
     double radius;
@@ -126,7 +129,7 @@ class Cylinder : public SimpleShape
 {
 public:
     Cylinder();
-    Cylinder(glm::dvec3 const& centerOfMass, glm::dvec3 const& halfHeight, double r);
+    Cylinder(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r);
 
     glm::dvec3 halfHeight;
     double radius;
@@ -137,7 +140,7 @@ class Box : public SimpleShape
 {
 public:
     Box();
-    Box(glm::dvec3 const& centerOfMass, glm::dvec3 const& i, glm::dvec3 const& j, glm::dvec3 const& k);
+    Box(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 i, glm::dvec3 j, glm::dvec3 k);
 
     glm::dvec3 iAxis;
     glm::dvec3 jAxis;

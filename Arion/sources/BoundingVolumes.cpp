@@ -95,7 +95,7 @@ glm::dmat3 volume::CalculateExtremalVertices(
 }
 
 obb::OrientedBoundingBox::OrientedBoundingBox(volume::Mesh const& mesh, std::set<std::size_t> const& indices)
-    : m_boxShape({}, {}, {}, {})
+    : m_boxShape({}, {}, {}, {}, {})
     , m_shape(mesh)
     , m_indices(indices)
 {
@@ -115,7 +115,7 @@ obb::OrientedBoundingBox::OrientedBoundingBox(volume::Mesh const& mesh, std::set
     m_box.boxAxes[1] = m_box.eigenVectorsNormalized[1] * glm::dot(m_box.extremalVertices[1] - m_box.mean, m_box.eigenVectorsNormalized[1]);
     m_box.boxAxes[2] = m_box.eigenVectorsNormalized[2] * glm::dot(m_box.extremalVertices[2] - m_box.mean, m_box.eigenVectorsNormalized[2]);
 
-    m_boxShape = arion::Box(m_box.mean, m_box.boxAxes[0], m_box.boxAxes[1], m_box.boxAxes[2]);
+    m_boxShape = arion::Box(m_box.mean, {}, m_box.boxAxes[0], m_box.boxAxes[1], m_box.boxAxes[2]);
 }
 
 arion::Box obb::OrientedBoundingBox::GetVolume() const
@@ -125,7 +125,7 @@ arion::Box obb::OrientedBoundingBox::GetVolume() const
 
 aabb::AxisAlignedBoundingBox::AxisAlignedBoundingBox(
     const volume::Mesh& mesh, std::set<std::size_t> const& indices)
-    : m_boxShape({}, {}, {}, {})
+    : m_boxShape({}, {}, {}, {}, {})
     , m_shape(mesh)
     , m_indices(indices)
 {
@@ -190,6 +190,7 @@ void aabb::AxisAlignedBoundingBox::CreateBox(aabb::AxisAlignedBoundingBox::Box& 
 {
     m_boxShape = arion::Box(
         box.extremalMean,
+        {},
         {box.xAxis[0], 0, 0},
         {0, box.yAxis[1], 0},
         {0, 0, box.zAxis[2]}
@@ -197,7 +198,7 @@ void aabb::AxisAlignedBoundingBox::CreateBox(aabb::AxisAlignedBoundingBox::Box& 
 }
 
 sphere::BoundingSphere::BoundingSphere(volume::Mesh const& mesh, std::set<std::size_t> const& indices)
-    : m_sphereShape({}, 0)
+    : m_sphereShape({}, {}, 0)
     , m_shape(mesh)
     , m_indices(indices)
 {
@@ -260,7 +261,7 @@ arion::Sphere sphere::BoundingSphere::CalculateInitialBoundingSphere(
     auto const center = (mesh.vertices[maxVertexIndex] - mesh.vertices[minVertexIndex]) / 2.0
             + mesh.vertices[minVertexIndex];
 
-    return arion::Sphere(center, radius);
+    return arion::Sphere(center, {}, radius);
 }
 
 arion::Sphere sphere::BoundingSphere::RefineSphere(
@@ -289,5 +290,5 @@ arion::Sphere sphere::BoundingSphere::RefineSphere(
         }
     }
 
-    return arion::Sphere(sphereCenter, sphereRadius);
+    return arion::Sphere(sphereCenter, {}, sphereRadius);
 }

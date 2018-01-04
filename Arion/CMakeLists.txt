@@ -32,6 +32,7 @@ include_directories(
 message(STATUS "Version: ${ARION_VERSION}")
 
 set(ARION_HEADERS
+    include/Arion/Debug.hpp
     include/Arion/Intersection.hpp
     include/Arion/Shape.hpp
     include/Arion/ConfigurationSpaceObject.hpp
