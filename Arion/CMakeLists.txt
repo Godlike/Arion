@@ -64,6 +64,10 @@ if (MSVC)
     )
 endif()
 
+if (ARION_BUILD_DEBUG)
+    add_definitions(-DARION_DEBUG)
+endif()
+
 add_library(${ARION_LIB}
     ${ARION_HEADERS}
     ${ARION_SOURCES}

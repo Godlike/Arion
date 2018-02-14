@@ -113,7 +113,6 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
     //Support information
     glm::dvec3 direction;
     double supportVertexDistance;
-    double previousDistance = std::numeric_limits<double>::min();
     double distance;
 
     do
@@ -128,7 +127,7 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
         //Get distance and direction to the polytope's face that is nearest to the origin
         epona::HyperPlane const& hp = chFaces.front().GetHyperPlane();
         direction = hp.GetNormal();
-        distance = hp.GetDistance();
+        distance = glm::abs(hp.GetDistance());
 
         //Find CSO point using new search direction
         glm::dvec3 const supportVertex = cso::Support(aShape, bShape, direction);
@@ -146,14 +145,7 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
         }
 
         //Debug call
-        debug::Debug::EpaDebugCall(convexHull, polytopeVertices, simplex);
-
-        //Endless loop detection
-        if (epona::fp::IsEqual(previousDistance, distance))
-        {
-            break;
-        }
-        previousDistance = distance;
+        debug::Debug::EpaCall(convexHull, polytopeVertices, simplex);
     } while (epona::fp::IsGreater(supportVertexDistance, distance));
 
     return {

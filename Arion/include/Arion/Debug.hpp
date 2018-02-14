@@ -1,12 +1,24 @@
 #ifndef ARION_DEBUG_HPP
 #define ARION_DEBUG_HPP
 
-#include <Arion/GilbertJohnsonKeerthi.hpp>
-#include <Epona/Analysis.hpp>
-#include <Epona/QuickhullConvexHull.hpp>
 #include <functional>
+#include <vector>
+#include <glm/glm.hpp>
 
 #define ARION_DEBUG
+
+namespace arion {
+namespace intersection {
+namespace gjk {
+    struct Simplex;
+} // namespace gjk
+} // namespace intresection
+} // namespace arion
+
+namespace epona {
+    template <typename T>
+    class QuickhullConvexHull;
+} // namespace epona
 
 namespace arion
 {
@@ -28,18 +40,18 @@ public:
 		return debug;
 	}
 
-	static void EpaDebugCall(
+	static void EpaCall(
 			epona::QuickhullConvexHull<std::vector<glm::dvec3>>& convexHull,
 			std::vector<glm::dvec3>& polytopeVertices,
-			intersection::gjk::Simplex& simplex
+            arion::intersection::gjk::Simplex& simplex
 		)
 #ifdef ARION_DEBUG
 	{
 		Debug& debug = GetInstace();
 
-        if (debug.epaDebugCallback)
+        if (debug.epaCallback)
 		{
-            debug.epaDebugCallback(convexHull, polytopeVertices, simplex);
+            debug.epaCallback(convexHull, polytopeVertices, simplex);
 		}
 	}
 #else
@@ -47,11 +59,29 @@ public:
 	}
 #endif
 
+    static void GjkCall(arion::intersection::gjk::Simplex& simplex)
+#ifdef ARION_DEBUG
+    {
+        Debug& debug = GetInstace();
+
+        if (debug.gjkCallback)
+        {
+            debug.gjkCallback(simplex);
+        }
+    }
+#else
+    {
+    }
+#endif
+
+
 	std::function<
 		void(epona::QuickhullConvexHull<std::vector<glm::dvec3>>&,
 		std::vector<glm::dvec3>&,
 		intersection::gjk::Simplex&)
-	> epaDebugCallback;
+	> epaCallback;
+
+    std::function<void(arion::intersection::gjk::Simplex&)> gjkCallback;
 };
 
 } // debug
