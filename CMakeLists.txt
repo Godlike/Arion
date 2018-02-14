@@ -10,10 +10,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(ARION_BUILD_DEMOS "Build Arion demo." ON)
 option(ARION_BUILD_TESTS "Build Arion tests." ON)
+option(ARION_BUILD_DEBUG "Build Arion debug." ON)
 
 message(STATUS "${PROJECT_NAME} configuration:")
 message(STATUS "-- ARION_BUILD_DEMOS: ${ARION_BUILD_DEMOS}")
-message(STATUS "-- ARION_BUILD_TESTS: ${ARION_BUILD_DEMOS}")
+message(STATUS "-- ARION_BUILD_TESTS: ${ARION_BUILD_TESTS}")
+message(STATUS "-- ARION_BUILD_DEBUG: ${ARION_BUILD_DEBUG}")
 
 set(ARION_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Arion root directory.")
 
