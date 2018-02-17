@@ -92,6 +92,7 @@ template <>
 struct Cache<Plane, Box> : CacheBase
 {
     std::array<glm::dvec3, 6> boxFaces;
+    glm::dvec3 boxWorldContactPoint;
     std::array<double, 6> boxFaceDistances;
     std::array<double, 8> boxPenetrations;
 };
@@ -112,6 +113,7 @@ template <>
 struct Cache<Sphere, Sphere> : CacheBase
 {
     glm::dvec3 baVector;
+    glm::dvec3 contactNormal;
     double radiusSum;
 };
 
@@ -119,8 +121,7 @@ template <>
 struct Cache<Sphere, Box> : CacheBase
 {
     gjk::Simplex simplex;
-    glm::dvec3 contactNormal;
-    double penetration;
+    epa::ContactManifold manifold;
     bool intersection;
 };
 
@@ -142,8 +143,7 @@ template <>
 struct Cache<Box, Sphere> : CacheBase
 {
     gjk::Simplex simplex;
-    glm::dvec3 contactNormal;
-    double penetration;
+    epa::ContactManifold manifold;
     bool intersection;
 };
 
@@ -151,8 +151,7 @@ template <>
 struct Cache<Box, Box> : CacheBase
 {
     gjk::Simplex simplex;
-    glm::dvec3 contactNormal;
-    double penetration;
+    epa::ContactManifold manifold;
     bool intersection;
 };
 
@@ -181,6 +180,20 @@ bool CalculateIntersection(SimpleShape const* a, SimpleShape const* b, CacheBase
 */
 template <typename ShapeA, typename ShapeB>
 glm::dvec3 CalculateContactNormal(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
+
+/**
+* @brief Calculates world space contact points on the surfaces of the given shapes
+*
+* Must be called strictly after the corresponding CalculateContactNormal function call, otherwise result is undefined
+* @tparam ShapeA SimpleShape or SimpleShape derived object
+* @tparam ShapeB SimpleShape or SimpleShape derived object
+* @param[in] a pointer to the ShapeA type object
+* @param[in] b pointer to the ShapeB type object
+* @param[in, out] cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
+* @return pair of the contact points where first is aShape contact point and second is bShape contact point in the world space
+*/
+template <typename ShapeA, typename ShapeB>
+std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
 
 /**
 * @brief Calculates penetration depth using shapes and cache data and returns it
@@ -240,6 +253,14 @@ inline glm::dvec3 CalculateContactNormal<Ray, Ray>(SimpleShape const* a, SimpleS
     return glm::normalize(glm::cross(glm::cross(bRay->direction, aRay->direction), bRay->direction));
 }
 
+/** Ray, Ray CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Ray, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Ray, Ray>*>(cacheBase);
+    return std::make_pair(cache->aClosestApproach, cache->bClosestApproach);
+}
+
 /** Ray, Ray CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Ray, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
@@ -266,6 +287,14 @@ inline glm::dvec3 CalculateContactNormal<Ray, Plane>(SimpleShape const* a, Simpl
 {
     auto ray = static_cast<Ray const*>(a);
     return ray->direction;
+}
+
+/** Ray, Plane CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Ray, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Ray, Plane>*>(cacheBase);
+    return std::make_pair(cache->contact, cache->contact);
 }
 
 /** Ray, Plane CalculatePenetration specialization */
@@ -309,6 +338,14 @@ inline glm::dvec3 CalculateContactNormal<Ray, Sphere>(SimpleShape const* a, Simp
     }
 
     return glm::normalize(cache->inPoint - sphere->centerOfMass);
+}
+
+/** Ray, Sphere CalculacteContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Ray, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Ray, Sphere>*>(cacheBase);
+    return std::make_pair(cache->inPoint, cache->inPoint);
 }
 
 /** Ray, Sphere CalculatePenetration specialization */
@@ -387,12 +424,59 @@ inline glm::dvec3 CalculateContactNormal<Ray, Box>(SimpleShape const* a, SimpleS
     return cache->boxContactNormal;
 }
 
+/** Ray, Box CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Ray, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Ray, Box>*>(cacheBase);
+    return std::make_pair(cache->inPoint, cache->inPoint);
+}
+
 /** Ray, Box CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Ray, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto cache = static_cast<Cache<Ray, Box>*>(cacheBase);
     return glm::length(cache->outPoint - cache->inPoint);
+}
+
+/** Plane, Plane CalculateIntersection specialization */
+template <>
+inline bool CalculateIntersection<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto aPlane = static_cast<Plane const*>(a);
+    auto bPlane = static_cast<Plane const*>(b);
+
+    return glm::length2(glm::cross(aPlane->normal, bPlane->normal)) != 0;
+}
+
+/** Plane, Plane CalculateContactNormal specialization */
+template <>
+inline glm::dvec3 CalculateContactNormal<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    const auto bPlane = static_cast<Plane const*>(b);
+    return bPlane->normal;
+}
+
+/** Plane, Plane CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto const aPlane = static_cast<Plane const*>(a);
+    auto const bPlane = static_cast<Plane const*>(b);
+    epona::HyperPlane const bHyperPlane{ bPlane->normal, bPlane->centerOfMass };
+
+    glm::dvec3 const contact = aPlane->normal
+        * glm::dot(aPlane->normal, bHyperPlane.GetDistance() * bHyperPlane.GetNormal());
+
+    return std::make_pair(contact, contact);
+}
+
+/** Plane, Plane CalculatePenetration specialization */
+template <>
+inline double CalculatePenetration<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    return std::numeric_limits<double>::max();
 }
 
 /** Plane, Ray CalculateIntersection specialization */
@@ -411,6 +495,14 @@ inline glm::dvec3 CalculateContactNormal<Plane, Ray>(SimpleShape const* a, Simpl
     return -ray->direction;
 }
 
+/** Plane, Ray CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Plane, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Plane, Ray>*>(cacheBase);
+    return std::make_pair(cache->rpCache.contact, cache->rpCache.contact);
+}
+
 /** Plane, Ray CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Plane, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
@@ -419,30 +511,6 @@ inline double CalculatePenetration<Plane, Ray>(SimpleShape const* a, SimpleShape
     return CalculatePenetration<Ray, Plane>(b, a, &cache->rpCache);
 }
 
-/** Plane, Plane CalculateIntersection specialization */
-template <>
-inline bool CalculateIntersection<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
-{
-    auto aPlane = static_cast<Plane const*>(a);
-    auto bPlane = static_cast<Plane const*>(b);
-
-    return glm::length2(glm::cross(aPlane->normal, bPlane->normal)) != 0;
-}
-
-/** Plane, Plane CalculateContactNormal specialization */
-template <>
-inline glm::dvec3 CalculateContactNormal<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
-{
-    auto bPlane = static_cast<Plane const*>(b);
-    return bPlane->normal;
-}
-
-/** Plane, Plane CalculatePenetration specialization */
-template <>
-inline double CalculatePenetration<Plane, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
-{
-    return std::numeric_limits<double>::max();
-}
 
 /** Plane, Sphere CalculateIntersection specialization */
 template <>
@@ -466,6 +534,20 @@ inline glm::dvec3 CalculateContactNormal<Plane, Sphere>(SimpleShape const* a, Si
     return -plane->normal;
 }
 
+/** Plane, Sphere CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Plane, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto const plane = static_cast<Plane const*>(a);
+    auto const sphere = static_cast<Sphere const*>(b);
+    epona::HyperPlane const hyperPlane{ plane->normal, plane->centerOfMass };
+
+    return std::make_pair(
+        hyperPlane.ClosestPoint(sphere->centerOfMass),
+        (-plane->normal * sphere->radius + sphere->centerOfMass)
+    );
+}
+
 /** Plane, Sphere CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Plane, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
@@ -484,6 +566,7 @@ inline bool CalculateIntersection<Plane, Box>(SimpleShape const* a, SimpleShape 
 
     cache->boxFaces = { { box->iAxis, box->jAxis, box->kAxis, -box->iAxis, -box->jAxis, -box->kAxis } };
 
+    //Calculate world space box vertices
     std::array<glm::dvec3, 8> boxVertices;
     epona::CalculateBoxVertices(box->iAxis, box->jAxis, box->kAxis, boxVertices.begin());
     for (glm::dvec3& veretex : boxVertices)
@@ -491,15 +574,21 @@ inline bool CalculateIntersection<Plane, Box>(SimpleShape const* a, SimpleShape 
         veretex += box->centerOfMass;
     }
 
+    //Calculate box vertices's distances to the plane
     double const planeDistance = glm::dot(plane->centerOfMass, plane->normal);
     std::transform(boxVertices.begin(), boxVertices.end(), cache->boxPenetrations.begin(),
         [planeDistance, &plane](glm::dvec3 const& p) -> double
     {
         return planeDistance - glm::dot(p, plane->normal);
     });
-    std::sort(cache->boxPenetrations.begin(), cache->boxPenetrations.end());
 
-    return cache->boxPenetrations.back() >= 0.0;
+    //Find vertex with most penetration depth
+    uint8_t const closestVertexIndex = static_cast<uint8_t>(std::distance(cache->boxPenetrations.begin(),
+        std::max_element(cache->boxPenetrations.begin(), cache->boxPenetrations.end()))
+    );
+    cache->boxWorldContactPoint = boxVertices[closestVertexIndex];
+
+    return cache->boxPenetrations[closestVertexIndex] >= 0.0;
 }
 
 /** Plane, Box CalculateContactNormal specialization */
@@ -519,6 +608,20 @@ inline glm::dvec3 CalculateContactNormal<Plane, Box>(SimpleShape const* a, Simpl
     );
 
     return glm::normalize(cache->boxFaces[minIndex]);
+}
+
+/** Plane, Box CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Plane, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Plane, Box>*>(cacheBase);
+    auto plane = static_cast<Plane const*>(a);
+    epona::HyperPlane hyperPlane(plane->normal, plane->centerOfMass);
+
+    return std::make_pair(
+        hyperPlane.ClosestPoint(cache->boxWorldContactPoint),
+        cache->boxWorldContactPoint
+    );
 }
 
 /** Plane, Box CalculatePenetration specialization */
@@ -545,6 +648,15 @@ inline glm::dvec3 CalculateContactNormal<Sphere, Plane>(SimpleShape const* a, Si
     return -CalculateContactNormal<Plane, Sphere>(b, a, &cache->psCache);
 }
 
+/** Sphere, Plane CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Sphere, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Sphere, Plane>*>(cacheBase);
+    auto const psContactPointsPair = CalculateContactPoints<Plane, Sphere>(b, a, &cache->psCache);
+    return std::make_pair(psContactPointsPair.second, psContactPointsPair.first);
+}
+
 /** Sphere, Plane CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Sphere, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
@@ -569,6 +681,14 @@ inline glm::dvec3 CalculateContactNormal<Sphere, Ray>(SimpleShape const* a, Simp
     return -ray->direction;
 }
 
+/** Sphere, Ray CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Sphere, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Sphere, Ray>*>(cacheBase);
+    return std::make_pair(cache->rsCache.inPoint, cache->rsCache.inPoint);
+}
+
 /** Sphere, Ray CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Sphere, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
@@ -581,9 +701,9 @@ inline double CalculatePenetration<Sphere, Ray>(SimpleShape const* a, SimpleShap
 template <>
 inline bool CalculateIntersection<Sphere, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Sphere>*>(cacheBase);
-    auto aSphere = static_cast<Sphere const*>(a);
-    auto bSphere = static_cast<Sphere const*>(b);
+    auto const cache = static_cast<Cache<Sphere, Sphere>*>(cacheBase);
+    auto const aSphere = static_cast<Sphere const*>(a);
+    auto const bSphere = static_cast<Sphere const*>(b);
 
     cache->baVector = aSphere->centerOfMass - bSphere->centerOfMass;
     cache->radiusSum = aSphere->radius + bSphere->radius;
@@ -595,15 +715,30 @@ inline bool CalculateIntersection<Sphere, Sphere>(SimpleShape const* a, SimpleSh
 template <>
 inline glm::dvec3 CalculateContactNormal<Sphere, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Sphere>*>(cacheBase);
-    return glm::normalize(cache->baVector);
+    auto const cache = static_cast<Cache<Sphere, Sphere>*>(cacheBase);
+    cache->contactNormal = glm::normalize(cache->baVector);
+    return cache->contactNormal;
+}
+
+/** Sphere, Sphere CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Sphere, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto const cache = static_cast<Cache<Sphere, Sphere> const*>(cacheBase);
+    auto const aSphere = static_cast<Sphere const*>(a);
+    auto const bSphere = static_cast<Sphere const*>(b);
+
+    return std::make_pair(
+        -cache->contactNormal * aSphere->radius + aSphere->centerOfMass,
+         cache->contactNormal * bSphere->radius + bSphere->centerOfMass
+    );
 }
 
 /** Sphere, Sphere CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Sphere, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Sphere>*>(cacheBase);
+    auto const cache = static_cast<Cache<Sphere, Sphere> const*>(cacheBase);
     return cache->radiusSum - glm::length(cache->baVector);
 }
 
@@ -611,9 +746,9 @@ inline double CalculatePenetration<Sphere, Sphere>(SimpleShape const* a, SimpleS
 template <>
 inline bool CalculateIntersection<Sphere, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Box>*>(cacheBase);
-    auto sphere = static_cast<Sphere const*>(a);
-    auto box = static_cast<Box const*>(b);
+    auto const cache = static_cast<Cache<Sphere, Box>*>(cacheBase);
+    auto const sphere = static_cast<Sphere const*>(a);
+    auto const box = static_cast<Box const*>(b);
 
     cache->intersection = gjk::CalculateIntersection(cache->simplex, *box, *sphere);
     return cache->intersection;
@@ -623,23 +758,29 @@ inline bool CalculateIntersection<Sphere, Box>(SimpleShape const* a, SimpleShape
 template <>
 inline glm::dvec3 CalculateContactNormal<Sphere, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Box>*>(cacheBase);
-    auto sphere = static_cast<Sphere const*>(a);
-    auto box = static_cast<Box const*>(b);
+    auto const cache = static_cast<Cache<Sphere, Box>*>(cacheBase);
+    auto const sphere = static_cast<Sphere const*>(a);
+    auto const box = static_cast<Box const*>(b);
 
-    epa::ContactManifold const contactManifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
-    cache->contactNormal = contactManifold.contactNormal;
-    cache->penetration = contactManifold.penetration;
+    cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
 
-    return cache->contactNormal;
+    return cache->manifold.contactNormal;
+}
+
+/** Sphere, Box CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Sphere, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto const cache = static_cast<Cache<Sphere, Box> const*>(cacheBase);
+    return std::make_pair(cache->manifold.aContactPointWorldSpace, cache->manifold.bContactPointWorldSpace);
 }
 
 /** Sphere, Box CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Sphere, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Sphere, Box>*>(cacheBase);
-    return cache->penetration;
+    auto const cache = static_cast<Cache<Sphere, Box> const*>(cacheBase);
+    return cache->manifold.penetration;
 }
 
 /** Box, Ray CalculateIntersection specialization */
@@ -655,9 +796,18 @@ template <>
 inline glm::dvec3 CalculateContactNormal<Box, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto cache = static_cast<Cache<Box, Ray>*>(cacheBase);
-    auto ray = static_cast<Ray const*>(b);
+    auto const ray = static_cast<Ray const*>(b);
     CalculateContactNormal<Ray, Box>(b, a, &cache->rbCache);
     return ray->direction;
+}
+
+/** Box, Ray CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Box, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Box, Ray>*>(cacheBase);
+    auto const contactPointsPair = CalculateContactPoints<Ray, Box>(b, a, &cache->rbCache);
+    return std::make_pair(contactPointsPair.second, contactPointsPair.first);
 }
 
 /** Box, Ray CalculatePenetration specialization */
@@ -680,8 +830,17 @@ inline bool CalculateIntersection<Box, Plane>(SimpleShape const* a, SimpleShape 
 template <>
 inline glm::dvec3 CalculateContactNormal<Box, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto plane = static_cast<Plane const*>(b);
+    auto const plane = static_cast<Plane const*>(b);
     return plane->normal;
+}
+
+/** Box, Plane CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3>  CalculateContactPoints<Box, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto cache = static_cast<Cache<Box, Plane>*>(cacheBase);
+    auto const contactPointsPair = CalculateContactPoints<Plane, Box>(b, a, &cache->pbCache);
+    return std::make_pair(contactPointsPair.second, contactPointsPair.first);
 }
 
 /** Box, Plane CalculatePenetration specialization */
@@ -696,9 +855,9 @@ inline double CalculatePenetration<Box, Plane>(SimpleShape const* a, SimpleShape
 template <>
 inline bool CalculateIntersection<Box, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Box, Sphere>*>(cacheBase);
-    auto box = static_cast<Box const*>(a);
-    auto sphere = static_cast<Sphere const*>(b);
+    auto const cache = static_cast<Cache<Box, Sphere>*>(cacheBase);
+    auto const box = static_cast<Box const*>(a);
+    auto const sphere = static_cast<Sphere const*>(b);
 
     cache->intersection = gjk::CalculateIntersection(cache->simplex, *sphere, *box);
 
@@ -709,32 +868,40 @@ inline bool CalculateIntersection<Box, Sphere>(SimpleShape const* a, SimpleShape
 template <>
 inline glm::dvec3 CalculateContactNormal<Box, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Box, Sphere>*>(cacheBase);
-    auto box = static_cast<Box const*>(a);
-    auto sphere = static_cast<Sphere const*>(b);
+    auto const cache = static_cast<Cache<Box, Sphere>*>(cacheBase);
+    auto const box = static_cast<Box const*>(a);
+    auto const sphere = static_cast<Sphere const*>(b);
 
-    epa::ContactManifold const contactManifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
-    cache->contactNormal = contactManifold.contactNormal;
-    cache->penetration = contactManifold.penetration;
+    cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
 
-    return cache->contactNormal;
+    return cache->manifold.contactNormal;
+}
+
+/** Box, Sphere CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Box, Sphere>(SimpleShape const* a, SimpleShape const *b, CacheBase* cacheBase)
+{
+    auto const cache = static_cast<Cache<Box, Sphere> const*>(cacheBase);
+
+    return std::make_pair(cache->manifold.aContactPointWorldSpace, cache->manifold.bContactPointWorldSpace);
 }
 
 /** Box, Sphere CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Box, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Box, Sphere>*>(cacheBase);
-    return cache->penetration;
+    auto const cache = static_cast<Cache<Box, Sphere> const*>(cacheBase);
+
+    return cache->manifold.penetration;
 }
 
 /** Box, Box CalculateIntersection specialization */
 template <>
 inline bool CalculateIntersection<Box, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto aBox = static_cast<Box const*>(a);
-    auto bBox = static_cast<Box const*>(b);
-    auto cache = static_cast<Cache<Box, Box>*>(cacheBase);
+    auto const aBox = static_cast<Box const*>(a);
+    auto const bBox = static_cast<Box const*>(b);
+    auto const cache = static_cast<Cache<Box, Box>*>(cacheBase);
 
     cache->intersection = gjk::CalculateIntersection(cache->simplex, *bBox, *aBox);
     return cache->intersection;
@@ -744,24 +911,31 @@ inline bool CalculateIntersection<Box, Box>(SimpleShape const* a, SimpleShape co
 template <>
 inline glm::dvec3 CalculateContactNormal<Box, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Box, Box>*>(cacheBase);
-    auto aBox = static_cast<Box const*>(a);
-    auto bBox = static_cast<Box const*>(b);
+    auto const cache = static_cast<Cache<Box, Box>*>(cacheBase);
+    auto const aBox = static_cast<Box const*>(a);
+    auto const bBox = static_cast<Box const*>(b);
 
-    epa::ContactManifold cm = epa::CalculateContactManifold(*bBox, *aBox, cache->simplex);
-    cache->contactNormal = cm.contactNormal;
-    cache->penetration = cm.penetration;
+    cache->manifold = epa::CalculateContactManifold(*bBox, *aBox, cache->simplex);
 
-    return cache->contactNormal;
+    return cache->manifold.contactNormal;
+}
+
+/** Box, Box CalculateContactPoints specialization */
+template <>
+inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Box, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
+{
+    auto const cache = static_cast<Cache<Box, Box> const*>(cacheBase);
+
+    return std::make_pair(cache->manifold.aContactPointWorldSpace, cache->manifold.bContactPointWorldSpace);
 }
 
 /** Box, Box CalculatePenetration specialization */
 template <>
 inline double CalculatePenetration<Box, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
-    auto cache = static_cast<Cache<Box, Box>*>(cacheBase);
+    auto const cache = static_cast<Cache<Box, Box> const*>(cacheBase);
 
-    return cache->penetration;
+    return cache->manifold.penetration;
 }
 } // namespace intersection
 
@@ -794,6 +968,16 @@ public:
     * @return contact normal
     */
     glm::dvec3 CalculateContactNormal(SimpleShape const* a, SimpleShape const* b);
+
+    /**
+    * @brief Calculates surface contact points of the given shapes in the world space
+    *
+    * Must be called strictly after CalculateContactNormal function call, otherwise result is undefined
+    * @param[in] a input shape
+    * @param[in] b input shape
+    * @return contact points
+    */
+    std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints(SimpleShape const* a, SimpleShape const* b);
 
     /**
     * @brief Calculates penetration depth of two shapes
@@ -831,6 +1015,11 @@ private:
         glm::dvec3(*)(SimpleShape const*, SimpleShape const*, intersection::CacheBase*),
         ShapeTypePairHasher>
         m_calculateContactNormalFunctors;
+
+    std::unordered_map<ShapeTypePair,
+        std::pair<glm::dvec3, glm::dvec3>(*)(SimpleShape const*, SimpleShape const*, intersection::CacheBase*),
+        ShapeTypePairHasher>
+        m_calculateContactPointsFunctors;
 
     std::unordered_map<ShapeTypePair,
         double(*)(SimpleShape const*, SimpleShape const*, intersection::CacheBase*),
