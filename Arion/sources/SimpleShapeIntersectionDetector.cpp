@@ -11,6 +11,7 @@ SimpleShapeIntersectionDetector::SimpleShapeIntersectionDetector()
     : m_intersectionCaches(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
     , m_calculateIntersectionFunctors(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
     , m_calculateContactNormalFunctors(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
+    , m_calculateContactPointsFunctors(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
     , m_calculatePenetrationFunctors(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
 {
     m_intersectionCaches[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::PLANE)]
@@ -70,6 +71,25 @@ SimpleShapeIntersectionDetector::SimpleShapeIntersectionDetector()
     m_calculateContactNormalFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::BOX)]
         = intersection::CalculateContactNormal<Box, Box>;
 
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactPoints<Plane, Plane>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactPoints<Plane, Sphere>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactPoints<Plane, Box>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactPoints<Sphere, Plane>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactPoints<Sphere, Sphere>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactPoints<Sphere, Box>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactPoints<Box, Plane>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactPoints<Box, Sphere>;
+    m_calculateContactPointsFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactPoints<Box, Box>;
+
     m_calculatePenetrationFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::PLANE)]
         = intersection::CalculatePenetration<Plane, Plane>;
     m_calculatePenetrationFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::SPHERE)]
@@ -99,6 +119,12 @@ bool SimpleShapeIntersectionDetector::CalculateIntersection(SimpleShape const* a
 glm::dvec3 SimpleShapeIntersectionDetector::CalculateContactNormal(SimpleShape const* a, SimpleShape const* b)
 {
     return m_calculateContactNormalFunctors[std::make_pair(a->type, b->type)](
+        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+}
+
+std::pair<glm::dvec3, glm::dvec3> SimpleShapeIntersectionDetector::CalculateContactPoints(SimpleShape const* a, SimpleShape const* b)
+{
+    return m_calculateContactPointsFunctors[std::make_pair(a->type, b->type)](
         a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
 }
 
