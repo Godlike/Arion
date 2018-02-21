@@ -7,6 +7,7 @@
 #define ARION_GJK_HPP
 
 #include <Arion/ConfigurationSpaceObject.hpp>
+#include <Arion/Debug.hpp>
 #include <Epona/FloatingPoint.hpp>
 
 #include <glm/glm.hpp>
@@ -93,6 +94,9 @@ bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bSha
     {
         //Add new vertex to the simplex
         simplex.vertices[simplex.size++] = cso::Support(aShape, bShape, direction);
+
+        //Debug call
+        debug::Debug::GjkCall(simplex);
 
         //Calculate if the new vertex is past the origin
         double const scalarDirectionProjection = glm::dot(simplex.vertices[simplex.size - 1], direction);
