@@ -19,21 +19,14 @@ glm::dvec3 intersection::cso::Support(Sphere const& sphere, glm::dvec3 direction
 
 glm::dvec3 intersection::cso::Support(Box const& box, glm::dvec3 direction)
 {
-    using namespace intersection;
-
     std::array<glm::dvec3, 8> boxVertices;
-    epona::CalculateBoxVertices(box.iAxis, box.jAxis, box.kAxis, box.centerOfMass, boxVertices.begin());
+    epona::CalculateBoxVertices(box.iAxis, box.jAxis, box.kAxis, boxVertices.begin());
     for (glm::dvec3 & vertex : boxVertices)
     {
         glm::dvec3 const resultVertex = glm::dmat4(glm::toMat4(box.orientation)) 
             * glm::dvec4{ vertex, 1 } + glm::dvec4{ box.centerOfMass, 1 };
         vertex = glm::dvec3{ resultVertex.x, resultVertex.y, resultVertex.z };
     }
-
-    std::sort(boxVertices.begin(), boxVertices.end(), [direction](glm::dvec3 a, glm::dvec3 b)
-    {
-        return glm::dot(a, direction) > glm::dot(b, direction);
-    });
 
     glm::dvec3 const maxPoint = *std::max_element(boxVertices.begin(), boxVertices.end(),
         [&direction](glm::dvec3 const& a, glm::dvec3 const& b) -> bool
