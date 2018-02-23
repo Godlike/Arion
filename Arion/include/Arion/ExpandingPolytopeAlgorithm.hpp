@@ -21,8 +21,6 @@ namespace epa
 /** Stores contact information */
 struct ContactManifold
 {
-    glm::dvec3 aContactPointModelSpace;
-    glm::dvec3 bContactPointModelSpace;
     glm::dvec3 aContactPointWorldSpace;
     glm::dvec3 bContactPointWorldSpace;
     glm::dvec3 contactNormal;
@@ -55,8 +53,8 @@ void BlowUpPolytope(gjk::Simplex& simplex, ShapeA const& aShape, ShapeB const& b
         orthogonalDirection[m] = A0[n];
         orthogonalDirection = glm::normalize(orthogonalDirection);
 
-        glm::dvec3 const a = cso::Support(aShape, bShape, orthogonalDirection);
-        glm::dvec3 const b = cso::Support(aShape, bShape, -orthogonalDirection);
+        glm::dvec3 const a = cso::Support(bShape, aShape, orthogonalDirection);
+        glm::dvec3 const b = cso::Support(bShape, aShape, -orthogonalDirection);
         double const adist = epona::LineSegmentPointDistance(simplex.vertices[0], simplex.vertices[1], a);
         double const bdist = epona::LineSegmentPointDistance(simplex.vertices[0], simplex.vertices[1], b);
 
@@ -74,8 +72,8 @@ void BlowUpPolytope(gjk::Simplex& simplex, ShapeA const& aShape, ShapeB const& b
         glm::dvec3 const AC = simplex.vertices[0] - simplex.vertices[2];
         glm::dvec3 const ABC = glm::cross(AB, AC);
 
-        glm::dvec3 const a = cso::Support(aShape, bShape, glm::normalize(ABC));
-        glm::dvec3 const b = cso::Support(aShape, bShape, glm::normalize(-ABC));
+        glm::dvec3 const a = cso::Support(bShape, aShape, glm::normalize(ABC));
+        glm::dvec3 const b = cso::Support(bShape, aShape, glm::normalize(-ABC));
 
         simplex.vertices[3] = epona::fp::IsGreater(hyperPlane.Distance(a), hyperPlane.Distance(b)) ? a : b;
         ++simplex.size;
@@ -102,7 +100,7 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
     //Blow up initial simplex if needed
     if (simplex.size < 4)
     {
-        BlowUpPolytope(simplex, aShape, bShape);
+        BlowUpPolytope(simplex, bShape, aShape);
     }
 
     //Initialize polytope and calculate initial convex hull
@@ -130,7 +128,7 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
         distance = glm::abs(hp.GetDistance());
 
         //Find CSO point using new search direction
-        glm::dvec3 const supportVertex = cso::Support(aShape, bShape, direction);
+        glm::dvec3 const supportVertex = cso::Support(bShape, aShape, direction);
         supportVertexDistance = glm::abs(glm::dot(supportVertex, direction));
 
         //If it's a face from the edge, end EPA
@@ -149,10 +147,8 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
     } while (epona::fp::IsGreater(supportVertexDistance, distance));
 
     return {
-        cso::Support(aShape, direction) - aShape.centerOfMass,
-        cso::Support(bShape, -direction) - bShape.centerOfMass,
-        cso::Support(aShape, direction),
-        cso::Support(bShape, -direction),
+        cso::Support(aShape, -direction),
+        cso::Support(bShape, direction),
         direction,
         distance
     };
