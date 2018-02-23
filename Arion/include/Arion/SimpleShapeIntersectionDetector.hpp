@@ -753,7 +753,7 @@ inline bool CalculateIntersection<Sphere, Box>(SimpleShape const* a, SimpleShape
     auto const sphere = static_cast<Sphere const*>(a);
     auto const box = static_cast<Box const*>(b);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *box, *sphere);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *sphere, *box);
     return cache->intersection;
 }
 
@@ -765,7 +765,7 @@ inline glm::dvec3 CalculateContactNormal<Sphere, Box>(SimpleShape const* a, Simp
     auto const sphere = static_cast<Sphere const*>(a);
     auto const box = static_cast<Box const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
 
     return cache->manifold.contactNormal;
 }
@@ -862,7 +862,7 @@ inline bool CalculateIntersection<Box, Sphere>(SimpleShape const* a, SimpleShape
     auto const box = static_cast<Box const*>(a);
     auto const sphere = static_cast<Sphere const*>(b);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *sphere, *box);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *box, *sphere);
 
     return cache->intersection;
 }
@@ -875,7 +875,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Sphere>(SimpleShape const* a, Simp
     auto const box = static_cast<Box const*>(a);
     auto const sphere = static_cast<Sphere const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
 
     return cache->manifold.contactNormal;
 }
@@ -906,7 +906,7 @@ inline bool CalculateIntersection<Box, Box>(SimpleShape const* a, SimpleShape co
     auto const bBox = static_cast<Box const*>(b);
     auto const cache = static_cast<Cache<Box, Box>*>(cacheBase);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *bBox, *aBox);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *aBox, *bBox);
     return cache->intersection;
 }
 
@@ -918,7 +918,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Box>(SimpleShape const* a, SimpleS
     auto const aBox = static_cast<Box const*>(a);
     auto const bBox = static_cast<Box const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*bBox, *aBox, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*aBox, *bBox, cache->simplex);
 
     return cache->manifold.contactNormal;
 }

@@ -93,7 +93,7 @@ bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bSha
     do
     {
         //Add new vertex to the simplex
-        simplex.vertices[simplex.size++] = cso::Support(aShape, bShape, direction);
+        simplex.vertices[simplex.size++] = cso::Support(bShape, aShape, direction);
 
         //Debug call
         debug::Debug::GjkCall(simplex);
@@ -154,7 +154,7 @@ template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
 {
     simplex = {
-        {{ cso::Support(aShape, bShape, glm::normalize(glm::dvec3{1,1,1})) }},
+        {{ cso::Support(bShape, aShape, glm::normalize(glm::dvec3{1,1,1})) }},
         1
     };
 
