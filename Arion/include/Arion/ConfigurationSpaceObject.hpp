@@ -54,7 +54,7 @@ glm::dvec3 Support(Box const& box, glm::dvec3 direction);
 template < typename ShapeA, typename ShapeB >
 glm::dvec3 Support(ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction)
 {
-    glm::dvec3 const aShapeSupportVertex = Support(aShape, direction);
+    glm::dvec3 const aShapeSupportVertex = Support(aShape,  direction);
     glm::dvec3 const bShapeSupportVertex = Support(bShape, -direction);
     glm::dvec3 const vertex = aShapeSupportVertex - bShapeSupportVertex;
     return vertex;

@@ -20,7 +20,7 @@ glm::dvec3 intersection::cso::Support(Sphere const& sphere, glm::dvec3 direction
 glm::dvec3 intersection::cso::Support(Box const& box, glm::dvec3 direction)
 {
     std::array<glm::dvec3, 8> boxVertices;
-    epona::CalculateBoxVertices(box.iAxis, box.jAxis, box.kAxis, boxVertices.begin());
+    epona::CalculateBoxVerticesModel(box.iAxis, box.jAxis, box.kAxis, boxVertices.begin());
     for (glm::dvec3 & vertex : boxVertices)
     {
         glm::dvec3 const resultVertex = glm::dmat4(glm::toMat4(box.orientation))

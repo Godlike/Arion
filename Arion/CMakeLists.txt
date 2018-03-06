@@ -33,6 +33,8 @@ message(STATUS "Version: ${ARION_VERSION}")
 
 set(ARION_HEADERS
     include/Arion/Debug.hpp
+    include/Arion/debug/DebugDummy.hpp
+    include/Arion/debug/DebugImplementation.hpp
     include/Arion/Intersection.hpp
     include/Arion/Shape.hpp
     include/Arion/ConfigurationSpaceObject.hpp
@@ -42,6 +44,7 @@ set(ARION_HEADERS
     include/Arion/BoundingVolumes.hpp
 )
 set(ARION_SOURCES
+    sources/DebugImplementation.cpp
     sources/Intersection.cpp
     sources/Shape.cpp
     sources/ConfigurationSpaceObject.cpp

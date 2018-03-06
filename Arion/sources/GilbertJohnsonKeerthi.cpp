@@ -84,6 +84,7 @@ glm::dvec3 NearestSimplexLineSegment(intersection::gjk::Simplex& simplex)
         return direction;
     }
 
+    simplex.supportVertices[0] = simplex.supportVertices[1];
     simplex.vertices[0] = simplex.vertices[1];
     simplex.size = 1;
     return A0;
@@ -100,9 +101,9 @@ glm::dvec3 NearestSimplexLineSegment(intersection::gjk::Simplex& simplex)
 */
 glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
 {
-    glm::dvec3 const& A = simplex.vertices[2];
-    glm::dvec3 const& B = simplex.vertices[1];
-    glm::dvec3 const& C = simplex.vertices[0];
+    glm::dvec3 const A = simplex.vertices[2];
+    glm::dvec3 const B = simplex.vertices[1];
+    glm::dvec3 const C = simplex.vertices[0];
 
     glm::dvec3 const AB = B - A;
     glm::dvec3 const AC = C - A;
@@ -116,21 +117,24 @@ glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
     {
         if (intersection::IsAngleAcute(AC, A0))
         {
-            simplex.vertices = { { C, A } };
+            simplex.supportVertices = {{ simplex.supportVertices[0], simplex.supportVertices[2] }};
+            simplex.vertices = {{ C, A }};
             simplex.size = 2;
 
             result = glm::cross(glm::cross(AC, -B), AC);
         }
         else if (intersection::IsAngleAcute(AB, A0))
         {
-            simplex.vertices = { { B, A } };
+            simplex.supportVertices = {{ simplex.supportVertices[1], simplex.supportVertices[2] }};
+            simplex.vertices = {{ B, A }};
             simplex.size = 2;
 
             result = glm::cross(glm::cross(AB, -B), AB);
         }
         else
         {
-            simplex.vertices = { { A } };
+            simplex.supportVertices = {{ simplex.supportVertices[0] }};
+            simplex.vertices = {{ A }};
             simplex.size = 1;
 
             result = -C;
@@ -140,14 +144,16 @@ glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
     {
         if (intersection::IsAngleAcute(AB, A0))
         {
-            simplex.vertices = { { B, A } };
+            simplex.supportVertices = {{ simplex.supportVertices[1], simplex.supportVertices[2] }};
+            simplex.vertices = {{ B, A }};
             simplex.size = 2;
 
             result = glm::cross(glm::cross(AB, -B), AB);
         }
         else
         {
-            simplex.vertices = { { A } };
+            simplex.supportVertices = {{ simplex.supportVertices[2] }};
+            simplex.vertices = {{ A }};
             simplex.size = 1;
 
             result = -C;
@@ -181,28 +187,33 @@ glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
 */
 glm::dvec3 NearestSimplexTetrahedron(intersection::gjk::Simplex& simplex)
 {
-    std::array<std::array<uint8_t, 3>, 3> const simplices{ {
-            std::array<uint8_t, 3>{ {0, 1, 3}},
-            std::array<uint8_t, 3>{ {1, 2, 3}},
-            std::array<uint8_t, 3>{ {0, 2, 3}}
-        } };
+    std::array<std::array<uint8_t, 3>, 3> const simplices{{
+        std::array<uint8_t, 3>{{0, 1, 3}},
+        std::array<uint8_t, 3>{{1, 2, 3}},
+        std::array<uint8_t, 3>{{0, 2, 3}},
+    }};
 
     std::array<glm::dvec3, 4> const& vertices = simplex.vertices;
 
-    std::array<double, 3> const planeOriginDistances{ {
-            epona::HyperPlane{ vertices[0], vertices[1], vertices[3], &vertices[2] }.GetDistance(),
-            epona::HyperPlane{ vertices[1], vertices[2], vertices[3], &vertices[0] }.GetDistance(),
-            epona::HyperPlane{ vertices[0], vertices[2], vertices[3], &vertices[1] }.GetDistance()
-        } };
+    std::array<double, 3> const planeOriginDistances{{
+        epona::HyperPlane{ vertices[0], vertices[1], vertices[3], &vertices[2] }.GetDistance(),
+        epona::HyperPlane{ vertices[1], vertices[2], vertices[3], &vertices[0] }.GetDistance(),
+        epona::HyperPlane{ vertices[0], vertices[2], vertices[3], &vertices[1] }.GetDistance()
+    }};
 
     size_t const closestPlaneIndex = std::distance(planeOriginDistances.begin(),
         std::min_element(planeOriginDistances.begin(), planeOriginDistances.end()));
 
-    simplex.vertices = { {
-            vertices[simplices[closestPlaneIndex][0]],
-            vertices[simplices[closestPlaneIndex][1]],
-            vertices[simplices[closestPlaneIndex][2]]
-        } };
+    simplex.supportVertices = {{
+        simplex.supportVertices[simplices[closestPlaneIndex][0]],
+        simplex.supportVertices[simplices[closestPlaneIndex][1]],
+        simplex.supportVertices[simplices[closestPlaneIndex][2]],
+    }};
+    simplex.vertices = {{
+        simplex.vertices[simplices[closestPlaneIndex][0]],
+        simplex.vertices[simplices[closestPlaneIndex][1]],
+        simplex.vertices[simplices[closestPlaneIndex][2]],
+    }};
     simplex.size = 3;
 
     return NearestSimplexTriangle(simplex);

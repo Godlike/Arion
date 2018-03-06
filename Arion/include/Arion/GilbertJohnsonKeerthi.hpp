@@ -25,6 +25,15 @@ namespace gjk
 /** Simplex data container */
 struct Simplex
 {
+    struct SupportVertices
+    {
+        glm::dvec3 aSupportVertex;
+        glm::dvec3 bSupportVertex;
+    };
+
+    //! Simplex support vertices. Note that some vertices may be unused
+    std::array<SupportVertices, 4> supportVertices;
+
     //! Simplex vertices. Note that some vertices may be unused
     std::array<glm::dvec3, 4> vertices;
 
@@ -86,15 +95,21 @@ bool DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction);
 *  @return @c true if simplex contains origin, @c false otherwise
 */
 template <typename ShapeA, typename ShapeB>
-bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100)
+bool CalculateSimplex(
+        Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100
+    )
 {
     do
     {
         //Add new vertex to the simplex
-        simplex.vertices[simplex.size++] = cso::Support(bShape, aShape, direction);
+        simplex.supportVertices[simplex.size++] = {
+            cso::Support(aShape,  direction),
+            cso::Support(bShape, -direction),
+        };
+        simplex.vertices[simplex.size - 1] = cso::Support(aShape, bShape, direction);
 
         //Debug call
-        debug::Debug::GjkCall(simplex);
+        debug::Debug::GjkCall(simplex, false);
 
         //Calculate if the new vertex is past the origin
         double const scalarDirectionProjection = glm::dot(simplex.vertices[simplex.size - 1], direction);
@@ -103,6 +118,9 @@ bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bSha
             return false;
         }
     } while (!DoSimplex(simplex, direction) && --maxIterations);
+
+    //Debug call
+    debug::Debug::GjkCall(simplex, true);
 
     return true;
 }
@@ -143,8 +161,10 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t m
 template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
+    glm::dvec3 const direction = glm::normalize(glm::dvec3{ 1,1,1 });
     simplex = {
-        {{ cso::Support(bShape, aShape, glm::normalize(glm::dvec3{1,1,1})) }},
+        {{{ cso::Support(aShape, direction), cso::Support(bShape, -direction) }}},
+        {{ cso::Support(aShape, bShape, direction) }},
         1
     };
 
