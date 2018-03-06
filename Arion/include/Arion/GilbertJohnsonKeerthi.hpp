@@ -86,10 +86,8 @@ bool DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction);
 *  @return @c true if simplex contains origin, @c false otherwise
 */
 template <typename ShapeA, typename ShapeB>
-bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction)
+bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100)
 {
-    std::vector<double> distances;
-
     do
     {
         //Add new vertex to the simplex
@@ -104,15 +102,7 @@ bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bSha
         {
             return false;
         }
-
-        //Endless loop
-        if (std::find(distances.begin(), distances.end(), scalarDirectionProjection) != distances.end())
-        {
-            return false;
-        }
-        distances.push_back(scalarDirectionProjection);
-
-    } while (!DoSimplex(simplex, direction));
+    } while (!DoSimplex(simplex, direction) && --maxIterations);
 
     return true;
 }
@@ -131,9 +121,9 @@ bool CalculateSimplex(Simplex& simplex, ShapeA const& aShape, ShapeB const& bSha
 *  @sa CalculateSimplex, CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
 */
 template <typename ShapeA, typename ShapeB>
-bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
+bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
-    return CalculateIntersection(Simplex(), aShape, bShape);
+    return CalculateIntersection(Simplex(), aShape, bShape, maxIterations);
 }
 
 /**
@@ -151,14 +141,14 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
 *  @sa CalculateSimplex, CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
 */
 template <typename ShapeA, typename ShapeB>
-bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
+bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
     simplex = {
         {{ cso::Support(bShape, aShape, glm::normalize(glm::dvec3{1,1,1})) }},
         1
     };
 
-    return CalculateSimplex(simplex, aShape, bShape, glm::normalize(-simplex.vertices[0]));
+    return CalculateSimplex(simplex, aShape, bShape, glm::normalize(-simplex.vertices[0]), maxIterations);
 }
 } // namespace gjk
 } // namespace intersection

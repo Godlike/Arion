@@ -93,7 +93,7 @@ void BlowUpPolytope(gjk::Simplex& simplex, ShapeA const& aShape, ShapeB const& b
  *  @return contact manifold
  */
 template <typename ShapeA, typename ShapeB>
-ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bShape, gjk::Simplex simplex)
+ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bShape, gjk::Simplex simplex, uint8_t maxIterations = 100)
 {
     using ConvexHull = epona::QuickhullConvexHull<std::vector<glm::dvec3>>;
 
@@ -143,8 +143,9 @@ ContactManifold CalculateContactManifold(ShapeA const& aShape, ShapeB const& bSh
         }
 
         //Debug call
-        debug::Debug::EpaCall(convexHull, polytopeVertices, simplex);
-    } while (epona::fp::IsGreater(supportVertexDistance, distance));
+        debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, supportVertex, direction);
+    }
+    while (epona::fp::IsGreater(supportVertexDistance, distance) && --maxIterations);
 
     return {
         cso::Support(aShape, -direction),
