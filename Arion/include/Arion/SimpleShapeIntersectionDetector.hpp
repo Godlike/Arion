@@ -38,24 +38,24 @@ struct Cache : CacheBase
 template <>
 struct Cache<Ray, Ray> : CacheBase
 {
-    double denominator;
-    glm::dvec3 aClosestApproach;
-    glm::dvec3 bClosestApproach;
+    double denominator = 0.0;
+    glm::dvec3 aClosestApproach = {};
+    glm::dvec3 bClosestApproach = {};
 };
 
 template <>
 struct Cache<Ray, Plane> : CacheBase
 {
-    glm::dvec3 contact;
+    glm::dvec3 contact = {};
 };
 
 template <>
 struct Cache<Ray, Sphere> : CacheBase
 {
-    glm::dvec3 sphereContactNormal;
-    glm::dvec3 inPoint;
-    glm::dvec3 outPoint;
-    bool intersection;
+    glm::dvec3 sphereContactNormal = {};
+    glm::dvec3 inPoint = {};
+    glm::dvec3 outPoint = {};
+    bool intersection = false;
 };
 
 template <>
@@ -91,10 +91,12 @@ struct Cache<Plane, Sphere> : CacheBase
 template <>
 struct Cache<Plane, Box> : CacheBase
 {
+    std::array<glm::dvec3, 8> boxVertices;
     std::array<glm::dvec3, 6> boxFaces;
     glm::dvec3 boxWorldContactPoint;
     std::array<double, 6> boxFaceDistances;
     std::array<double, 8> boxPenetrations;
+    uint8_t closestVertexIndex;
 };
 
 template <>
@@ -567,31 +569,29 @@ inline bool CalculateIntersection<Plane, Box>(SimpleShape const* a, SimpleShape 
     cache->boxFaces = { { box->iAxis, box->jAxis, box->kAxis, -box->iAxis, -box->jAxis, -box->kAxis } };
 
     //Calculate world space box vertices
-    std::array<glm::dvec3, 8> boxVertices;
-    epona::CalculateBoxVertices(box->iAxis, box->jAxis, box->kAxis, boxVertices.begin());
-    for (glm::dvec3& vertex : boxVertices)
+    epona::CalculateBoxVerticesModel(box->iAxis, box->jAxis, box->kAxis, cache->boxVertices.begin());
+    for (glm::dvec3& vertex : cache->boxVertices)
     {
-        glm::dvec3 const resultVertex = glm::dmat4(glm::toMat4(box->orientation)) 
+        glm::dvec3 const resultVertex = glm::dmat4(glm::toMat4(box->orientation))
             * glm::dvec4{ vertex, 1 } + glm::dvec4{ box->centerOfMass, 1 };
         vertex = glm::dvec3{ resultVertex.x, resultVertex.y, resultVertex.z };
     }
 
     //Calculate box vertices's distances to the plane
     double const planeDistance = glm::dot(plane->centerOfMass, plane->normal);
-    std::transform(boxVertices.begin(), boxVertices.end(), cache->boxPenetrations.begin(),
+    std::transform(cache->boxVertices.begin(), cache->boxVertices.end(), cache->boxPenetrations.begin(),
         [planeDistance, &plane](glm::dvec3 const& p) -> double
     {
         return planeDistance - glm::dot(p, plane->normal);
     });
 
     //Find vertex with most penetration depth
-    uint8_t const closestVertexIndex = static_cast<uint8_t>(
+    cache->closestVertexIndex = static_cast<uint8_t>(
         std::distance(cache->boxPenetrations.begin(),
             std::max_element(cache->boxPenetrations.begin(), cache->boxPenetrations.end())
     ));
-    cache->boxWorldContactPoint = boxVertices[closestVertexIndex];
 
-    return cache->boxPenetrations[closestVertexIndex] >= 0.0;
+    return cache->boxPenetrations[cache->closestVertexIndex] >= 0.0;
 }
 
 /** Plane, Box CalculateContactNormal specialization */
@@ -620,6 +620,20 @@ inline std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints<Plane, Box>(Simp
     auto cache = static_cast<Cache<Plane, Box>*>(cacheBase);
     auto plane = static_cast<Plane const*>(a);
     epona::HyperPlane hyperPlane(plane->normal, plane->centerOfMass);
+
+    uint8_t contactPointCounter = 0;
+    cache->boxWorldContactPoint = glm::dvec3{ 0 };
+    for (uint8_t i = 0; i < cache->boxPenetrations.size(); ++i)
+    {
+        if (epona::fp::IsGreaterOrEqual(cache->boxPenetrations[i], 0))
+        {
+            contactPointCounter++;
+            cache->boxWorldContactPoint += cache->boxVertices[i];
+        }
+    }
+    cache->boxWorldContactPoint = (contactPointCounter == 0)
+        ? cache->boxVertices[cache->closestVertexIndex]
+        : cache->boxWorldContactPoint / static_cast<double>(contactPointCounter);
 
     return std::make_pair(
         hyperPlane.ClosestPoint(cache->boxWorldContactPoint),
@@ -753,7 +767,7 @@ inline bool CalculateIntersection<Sphere, Box>(SimpleShape const* a, SimpleShape
     auto const sphere = static_cast<Sphere const*>(a);
     auto const box = static_cast<Box const*>(b);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *sphere, *box);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *box, *sphere);
     return cache->intersection;
 }
 
@@ -765,7 +779,7 @@ inline glm::dvec3 CalculateContactNormal<Sphere, Box>(SimpleShape const* a, Simp
     auto const sphere = static_cast<Sphere const*>(a);
     auto const box = static_cast<Box const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
 
     return cache->manifold.contactNormal;
 }
@@ -862,7 +876,7 @@ inline bool CalculateIntersection<Box, Sphere>(SimpleShape const* a, SimpleShape
     auto const box = static_cast<Box const*>(a);
     auto const sphere = static_cast<Sphere const*>(b);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *box, *sphere);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *sphere, *box);
 
     return cache->intersection;
 }
@@ -875,7 +889,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Sphere>(SimpleShape const* a, Simp
     auto const box = static_cast<Box const*>(a);
     auto const sphere = static_cast<Sphere const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
 
     return cache->manifold.contactNormal;
 }
@@ -906,7 +920,7 @@ inline bool CalculateIntersection<Box, Box>(SimpleShape const* a, SimpleShape co
     auto const bBox = static_cast<Box const*>(b);
     auto const cache = static_cast<Cache<Box, Box>*>(cacheBase);
 
-    cache->intersection = gjk::CalculateIntersection(cache->simplex, *aBox, *bBox);
+    cache->intersection = gjk::CalculateIntersection(cache->simplex, *bBox, *aBox);
     return cache->intersection;
 }
 
@@ -918,7 +932,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Box>(SimpleShape const* a, SimpleS
     auto const aBox = static_cast<Box const*>(a);
     auto const bBox = static_cast<Box const*>(b);
 
-    cache->manifold = epa::CalculateContactManifold(*aBox, *bBox, cache->simplex);
+    cache->manifold = epa::CalculateContactManifold(*bBox, *aBox, cache->simplex);
 
     return cache->manifold.contactNormal;
 }
