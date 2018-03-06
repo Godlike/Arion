@@ -43,7 +43,9 @@ public:
 	static void EpaCall(
 			epona::QuickhullConvexHull<std::vector<glm::dvec3>>& convexHull,
 			std::vector<glm::dvec3>& polytopeVertices,
-            arion::intersection::gjk::Simplex& simplex
+            arion::intersection::gjk::Simplex& simplex,
+            glm::dvec3 supportVertex,
+            glm::dvec3 direction
 		)
 #ifdef ARION_DEBUG
 	{
@@ -51,7 +53,7 @@ public:
 
         if (debug.epaCallback)
 		{
-            debug.epaCallback(convexHull, polytopeVertices, simplex);
+            debug.epaCallback(convexHull, polytopeVertices, simplex, supportVertex, direction);
 		}
 	}
 #else
@@ -74,11 +76,12 @@ public:
     }
 #endif
 
-
 	std::function<
 		void(epona::QuickhullConvexHull<std::vector<glm::dvec3>>&,
 		std::vector<glm::dvec3>&,
-		intersection::gjk::Simplex&)
+		intersection::gjk::Simplex&,
+        glm::dvec3,
+        glm::dvec3)
 	> epaCallback;
 
     std::function<void(arion::intersection::gjk::Simplex&)> gjkCallback;
