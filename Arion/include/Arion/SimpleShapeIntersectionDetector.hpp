@@ -38,24 +38,24 @@ struct Cache : CacheBase
 template <>
 struct Cache<Ray, Ray> : CacheBase
 {
-    double denominator = 0.0;
-    glm::dvec3 aClosestApproach = {};
-    glm::dvec3 bClosestApproach = {};
+    double denominator;
+    glm::dvec3 aClosestApproach;
+    glm::dvec3 bClosestApproach;
 };
 
 template <>
 struct Cache<Ray, Plane> : CacheBase
 {
-    glm::dvec3 contact = {};
+    glm::dvec3 contact;
 };
 
 template <>
 struct Cache<Ray, Sphere> : CacheBase
 {
-    glm::dvec3 sphereContactNormal = {};
-    glm::dvec3 inPoint = {};
-    glm::dvec3 outPoint = {};
-    bool intersection = false;
+    glm::dvec3 sphereContactNormal;
+    glm::dvec3 inPoint;
+    glm::dvec3 outPoint;
+    bool intersection;
 };
 
 template <>
@@ -158,57 +158,69 @@ struct Cache<Box, Box> : CacheBase
 };
 
 /**
-* @brief Performs intersection test using shapes and cache data and returns true if shapes are intersecting
-* @tparam ShapeA SimpleShape or SimpleShape derived object
-* @tparam ShapeB SimpleShape or SimpleShape derived object
-* @param[in] a pointer to the ShapeA type object
-* @param[in] b pointer to the ShapeB type object
-* @param[in, out] cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
-* @return @c true if there is intersection, @c false otherwise
-*/
+ * @brief Performs intersection test using shapes and cache data and returns true if shapes are intersecting
+ *
+ * @tparam ShapeA SimpleShape or SimpleShape derived object
+ * @tparam ShapeB SimpleShape or SimpleShape derived object
+ *
+ * @param[in]       a pointer to the ShapeA type object
+ * @param[in]       b pointer to the ShapeB type object
+ * @param[in, out]  cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
+ *
+ * @return @c true if there is intersection, @c false otherwise
+ */
 template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
 
 /**
-* @brief Calculates surface contact normal of b shape using shapes and cache data and returns it
-*
-* Must be called strictly after the corresponding CalculateIntersection function call, otherwise result is undefined
-* @tparam ShapeA SimpleShape or SimpleShape derived object
-* @tparam ShapeB SimpleShape or SimpleShape derived object
-* @param[in] a pointer to the ShapeA type object
-* @param[in] b pointer to the ShapeB type object
-* @param[in, out] cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
-* @return surface contact normal of the b object
-*/
+ * @brief Calculates surface contact normal of b shape using shapes and cache data and returns it
+ *
+ * @attention Must be called strictly after the corresponding CalculateIntersection function call, otherwise result is undefined
+ *
+ * @tparam ShapeA SimpleShape or SimpleShape derived object
+ * @tparam ShapeB SimpleShape or SimpleShape derived object
+ *
+ * @param[in]       a pointer to the ShapeA type object
+ * @param[in]       b pointer to the ShapeB type object
+ * @param[in, out]  cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
+ *
+ * @return surface contact normal of the b object
+ */
 template <typename ShapeA, typename ShapeB>
 glm::dvec3 CalculateContactNormal(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
 
 /**
-* @brief Calculates world space contact points on the surfaces of the given shapes
-*
-* Must be called strictly after the corresponding CalculateContactNormal function call, otherwise result is undefined
-* @tparam ShapeA SimpleShape or SimpleShape derived object
-* @tparam ShapeB SimpleShape or SimpleShape derived object
-* @param[in] a pointer to the ShapeA type object
-* @param[in] b pointer to the ShapeB type object
-* @param[in, out] cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
-* @return pair of the contact points where first is aShape contact point and second is bShape contact point in the world space
-*/
+ * @brief Calculates world space contact points on the surfaces of the given shapes
+ *
+ * @attention Must be called strictly after the corresponding CalculateContactNormal function call, otherwise result is undefined
+ *
+ * @tparam ShapeA SimpleShape or SimpleShape derived object
+ * @tparam ShapeB SimpleShape or SimpleShape derived object
+ *
+ * @param[in]       a pointer to the ShapeA type object
+ * @param[in]       b pointer to the ShapeB type object
+ * @param[in, out]  cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
+ *
+ * @return pair of the contact points where first is aShape contact point and second is bShape contact point in the world space
+ */
 template <typename ShapeA, typename ShapeB>
 std::pair<glm::dvec3, glm::dvec3> CalculateContactPoints(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
 
 /**
-* @brief Calculates penetration depth using shapes and cache data and returns it
-*
-* Must be called strictly after the corresponding CalculateContactNormal function call,
-* otherwise result is undefined
-* @tparam ShapeA SimpleShape or SimpleShape derived object
-* @tparam ShapeB SimpleShape or SimpleShape derived object
-* @param[in] a pointer to the ShapeA type object
-* @param[in] b pointer to the ShapeB type object
-* @param[in, out] cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
-* @return penetration depth
-*/
+ * @brief Calculates penetration depth using shapes and cache data and returns it
+ *
+ * @attention Must be called strictly after the corresponding CalculateContactNormal function call,
+ * otherwise result is undefined
+ *
+ * @tparam ShapeA SimpleShape or SimpleShape derived object
+ * @tparam ShapeB SimpleShape or SimpleShape derived object
+ *
+ * @param[in]       a pointer to the ShapeA type object
+ * @param[in]       b pointer to the ShapeB type object
+ * @param[in, out]  cacheBase pointer to the IntersectionCacheBase or IntersectionCacheBase derived object
+ *
+ * @return penetration depth
+ */
 template <typename ShapeA, typename ShapeB>
 double CalculatePenetration(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase);
 

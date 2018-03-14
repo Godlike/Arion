@@ -25,6 +25,7 @@ namespace gjk
 /** Simplex data container */
 struct Simplex
 {
+    //! Holds a pair of support vertices
     struct SupportVertices
     {
         glm::dvec3 aSupportVertex;
@@ -42,58 +43,59 @@ struct Simplex
 };
 
 /**
-*  @brief  Checks if simplex contains origin
-*
-*  @attention  Must only be called on a simplex of size in range [2; 4]
-*
-*  @param  simplex simplex data
-*
-*  @return @c true if simplex contains origin @c false otherwise
-*/
+ * @brief  Checks if simplex contains origin
+ *
+ * @attention  Must only be called on a simplex of size in range [2; 4]
+ *
+ * @param  simplex simplex data
+ *
+ * @return @c true if simplex contains origin @c false otherwise
+ */
 bool SimplexContainsOrigin(Simplex const& simplex);
 
 /**
-*  @brief  Calculates nearest simplex to the origin
-*
-*  Presumes that simplex vertices are stored in a way such that the latest
-*  added vertex has index @c simplexSize - 1
-*
-*  Given simplex may be reduced down to size 1 as a result of this method.
-*
-*  @param[in,out]  simplex simplex data
-*
-*  @return new search direction
-*/
+ * @brief  Calculates nearest simplex to the origin
+ *
+ * Presumes that simplex vertices are stored in a way such that the latest
+ * added vertex has index @c simplexSize - 1
+ *
+ * Given simplex may be reduced down to size 1 as a result of this method.
+ *
+ * @param[in,out]  simplex simplex data
+ *
+ * @return new search direction
+ */
 glm::dvec3 NearestSimplex(Simplex& simplex);
 
 /**
-*  @brief Checks if simplex contains origin
-*
-*  If simplex does not contain origin it is replaced by a new sub simplex
-*  that is closest to the origin
-*
-*  @param[in,out]  simplex     current simplex
-*  @param[in,out]  direction   current search direction
-*
-*  @return @c true if simplex contains origin, @c false otherwise
-*/
+ * @brief Checks if simplex contains origin
+ *
+ * If simplex does not contain origin it is replaced by a new sub simplex
+ * that is closest to the origin
+ *
+ * @param[in,out]  simplex     current simplex
+ * @param[in,out]  direction   current search direction
+ *
+ * @return @c true if simplex contains origin, @c false otherwise
+ */
 bool DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction);
 
 /**
-*  @brief  Calculates a tetrahedron from the CSO such that it contains the origin
-*
-*  If simplex contains origin then there is intersection between given shapes
-*
-*  @tparam ShapeA  any shape type for which gjk::Support is overloaded
-*  @tparam ShapeB  any shape type for which gjk::Support is overloaded
-*
-*  @param[in,out]  simplex     initial simplex
-*  @param[in]      aShape      reference to the shape object
-*  @param[in]      bShape      reference to the shape object
-*  @param[in]      direction   initial search direction vector of unit length
-*
-*  @return @c true if simplex contains origin, @c false otherwise
-*/
+ * @brief  Calculates a tetrahedron from the CSO such that it contains the origin
+ *
+ * If simplex contains origin then there is intersection between given shapes
+ *
+ * @tparam ShapeA  any shape type for which gjk::Support is overloaded
+ * @tparam ShapeB  any shape type for which gjk::Support is overloaded
+ *
+ * @param[in,out]  simplex          initial simplex
+ * @param[in]      aShape           reference to the shape object
+ * @param[in]      bShape           reference to the shape object
+ * @param[in]      direction        initial search direction vector of unit length
+ * @param[in]      maxIterations    maximum allowed iterations
+ *
+ * @return @c true if simplex contains origin, @c false otherwise
+ */
 template <typename ShapeA, typename ShapeB>
 bool CalculateSimplex(
         Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100
@@ -126,18 +128,19 @@ bool CalculateSimplex(
 }
 
 /**
-*  @brief  Checks if two shapes are intersecting using GJK algorithm
-*
-*  @tparam ShapeA  any shape type for which gjk::Support is overloaded
-*  @tparam ShapeB  any shape type for which gjk::Support is overloaded
-*
-*  @param  aShape  reference to the shape object
-*  @param  bShape  reference to the shape object
-*
-*  @return @c true if there is intersection, @c false otherwise
-*
-*  @sa CalculateSimplex, CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
-*/
+ * @brief  Checks if two shapes are intersecting using GJK algorithm
+ *
+ * @tparam ShapeA  any shape type for which gjk::Support is overloaded
+ * @tparam ShapeB  any shape type for which gjk::Support is overloaded
+ *
+ * @param  aShape           reference to the shape object
+ * @param  bShape           reference to the shape object
+ * @param  maxIterations    maximum allowed iterations
+ *
+ * @return @c true if there is intersection, @c false otherwise
+ *
+ * @sa CalculateSimplex, CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
+ */
 template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
@@ -145,19 +148,20 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t m
 }
 
 /**
-*  @brief  Checks if two shapes are intersecting using GJK algorithm
-*
-*  @tparam ShapeA  any shape type for which gjk::Support is overloaded
-*  @tparam ShapeB  any shape type for which gjk::Support is overloaded
-*
-*  @param[out] simplex tetrahedron from CSO points containing the origin if one exists
-*  @param[in]  aShape  reference to the shape object
-*  @param[in]  bShape  reference to the shape object
-*
-*  @return @c true if there is intersection, @c false otherwise
-*
-*  @sa CalculateSimplex, CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
-*/
+ * @brief  Checks if two shapes are intersecting using GJK algorithm
+ *
+ * @tparam ShapeA  any shape type for which gjk::Support is overloaded
+ * @tparam ShapeB  any shape type for which gjk::Support is overloaded
+ *
+ * @param[out] simplex          tetrahedron from CSO points containing the origin if one exists
+ * @param[in]  aShape           reference to the shape object
+ * @param[in]  bShape           reference to the shape object
+ * @param[in]  maxIterations    maximum allowed iterations
+ *
+ * @return @c true if there is intersection, @c false otherwise
+ *
+ * @sa CalculateSimplex, CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
+ */
 template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
