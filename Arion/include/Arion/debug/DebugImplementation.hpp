@@ -24,25 +24,12 @@ template < typename T>
 class QuickhullConvexHull;
 }
 
-namespace {
-template < typename ConvexHullBuffer >
-void EpaCallback(
-    epona::QuickhullConvexHull<ConvexHullBuffer>&,
-    ConvexHullBuffer&,
-    arion::intersection::gjk::Simplex&,
-    arion::SimpleShape const&,
-    arion::SimpleShape const&,
-    glm::dvec3,
-    glm::dvec3) 
-{
-}
-}
-
 namespace arion
 {
 namespace debug
 {
 
+/* Provides callback interface for debugging */
 class DebugImplementation
 {
 public:
@@ -56,6 +43,24 @@ public:
         glm::dvec3,
         glm::dvec3)>;
 
+    /**
+     * @brief EPA debug call function
+     * 
+     * This method is called from within the EPA function
+     * during the calculation. The method is called on every iteration of the EPA. 
+     * It then proxies all the arguments to the currently
+     * set callback functor.
+     * 
+     * @tparam ConvexHullBuffer convex hull vertex buffer type
+     * 
+     * @param[in] convexHull        current convex hull containing cso
+     * @param[in] vertexBuffer      current vertex buffer for the convex hull
+     * @param[in] simplex           gjk simplex
+     * @param[in] aShape            first shape 
+     * @param[in] bShape            second shape
+     * @param[in] supportVertex     current support vertex
+     * @param[in] direction         current search direction
+     */
     template < typename ConvexHullBuffer >
     static void EpaCall(
             epona::QuickhullConvexHull<ConvexHullBuffer>& convexHull,
@@ -72,17 +77,40 @@ public:
         );
     }
 
+    /**
+     * @brief Sets new callback for the EPA debug
+     * 
+     * @tparam ConvexHullBuffer convex hull buffer type
+     * 
+     * @param callback new callback function
+     */
     template < typename ConvexHullBuffer >
     static void SetEpaCallback(EpaCallback<ConvexHullBuffer> callback)
     {
         GetEpaCallback<ConvexHullBuffer>() = callback;
     }
 
+    /**
+     * @brief GJK debug function
+     * 
+     * This method is called from within the GJK function
+     * during the calculation. The method is called on every iteration of the GJK. 
+     * It then proxies all the arguments to the currently
+     * set callback functor.
+     * 
+     * @param[in] simplex   current simplex
+     * @param[in] end       true if GJK ended 
+     */
     static void GjkCall(arion::intersection::gjk::Simplex& simplex, bool end)
     {
         gjkCallback(simplex, end);
     }
 
+    /**
+     * @brief Sets GJK debug callback
+     * 
+     * @param callback new GJK debug callback function
+     */
     static void SetGjkCallback(
             std::function<void(arion::intersection::gjk::Simplex&, bool)> callback
         )
@@ -91,14 +119,41 @@ public:
     }
 
 private:
+    /**
+     * @brief Returns reference to the current EPA debug callback
+     * 
+     * @tparam ConvexHullBuffer convex hull buffer type
+     * 
+     * @return current callback
+     */
     template < typename ConvexHullBuffer >
     static EpaCallback<ConvexHullBuffer>& GetEpaCallback()
     {
-        static EpaCallback<ConvexHullBuffer> epaCallback = ::EpaCallback<ConvexHullBuffer>;
+        static EpaCallback<ConvexHullBuffer> epaCallback = DummyEpaCallback<ConvexHullBuffer>;
         return epaCallback;
     }
 
+    //! Stores GJK callback function
     static std::function<void(arion::intersection::gjk::Simplex&, bool)> gjkCallback;
+
+    /**
+    * @brief EPA debug call function
+    *
+    * @note This is an empty function for the callback initialization
+    * 
+    * @tparam ConvexHullBuffer convex hull vertex buffer type
+    */
+    template < typename ConvexHullBuffer >
+    static void DummyEpaCallback(
+        epona::QuickhullConvexHull<ConvexHullBuffer>&,
+        ConvexHullBuffer&,
+        arion::intersection::gjk::Simplex&,
+        arion::SimpleShape const&,
+        arion::SimpleShape const&,
+        glm::dvec3,
+        glm::dvec3)
+    {
+    }
 };
 
 } // debug

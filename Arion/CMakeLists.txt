@@ -67,14 +67,14 @@ if (MSVC)
     )
 endif()
 
-if (ARION_BUILD_DEBUG)
-    add_definitions(-DARION_DEBUG)
-endif()
-
 add_library(${ARION_LIB}
     ${ARION_HEADERS}
     ${ARION_SOURCES}
 )
+
+if (ARION_BUILD_DEBUG)
+    target_compile_definitions(${ARION_LIB} PUBLIC ARION_DEBUG)
+endif()
 
 target_include_directories(${ARION_LIB} PUBLIC
     ${EPONA_INCLUDE_DIR}

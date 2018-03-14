@@ -103,16 +103,17 @@ struct ContactManifold
 };
 
 /**
- *  @brief  Calculates contact manifold using Expanding Polytope Algorithm
+ * @brief  Calculates contact manifold using Expanding Polytope Algorithm
  *
- *  @tparam ShapeA  SimpleShape or SimpleShape derived object
- *  @tparam ShapeB  SimpleShape or SimpleShape derived object
+ * @tparam ShapeA  SimpleShape or SimpleShape derived object
+ * @tparam ShapeB  SimpleShape or SimpleShape derived object
  *
- *  @param  aShape  input shape
- *  @param  bShape  input shape
- *  @param  simplex initial simplex
+ * @param  aShape           input shape
+ * @param  bShape           input shape
+ * @param  simplex          initial simplex
+ * @param  maxIterations    maximum allowed iterations
  *
- *  @return contact manifold
+ * @return contact manifold
  */
 template <typename ShapeA, typename ShapeB>
 ContactManifold CalculateContactManifold(
