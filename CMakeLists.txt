@@ -8,7 +8,7 @@ project(Arion)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-option(ARION_BUILD_DEMOS "Build Arion demo." ON)
+option(ARION_BUILD_DEMOS "Build Arion demo."  ON)
 option(ARION_BUILD_TESTS "Build Arion tests." ON)
 option(ARION_BUILD_DEBUG "Build Arion debug." ON)
 
