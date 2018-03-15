@@ -207,7 +207,7 @@ ContactManifold CalculateContactManifold(
     //Debug call
     debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, polytopeContactPoint, direction);
 
-    return {
+    return ContactManifold{
         epona::WorldToModelSpace(aContactPointWorld, -aShape.centerOfMass, glm::inverse(glm::toMat3(aShape.orientation))),
         epona::WorldToModelSpace(bContactPointWorld, -bShape.centerOfMass, glm::inverse(glm::toMat3(bShape.orientation))),
         aContactPointWorld,

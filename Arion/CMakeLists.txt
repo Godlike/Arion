@@ -73,9 +73,7 @@ add_library(${ARION_LIB}
     ${ARION_SOURCES}
 )
 
-if (ARION_BUILD_DEBUG)
-    target_compile_definitions(${ARION_LIB} PUBLIC ARION_DEBUG)
-endif()
+target_compile_definitions(${ARION_LIB} PUBLIC ${ARION_DEFINITIONS})
 
 target_include_directories(${ARION_LIB} PUBLIC
     ${EPONA_INCLUDE_DIR}

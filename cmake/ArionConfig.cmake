@@ -31,6 +31,11 @@ set(ARION_INCLUDE_DIR
     CACHE LIST "Arion include directories."
 )
 
+set(ARION_DEBUG_MACRO "ARION_DEBUG")
+if (${ARION_BUILD_DEBUG})
+    list(APPEND ${ARION_DEFINITIONS} ${ARION_DEBUG_MACRO})
+endif()
+
 if (NOT DEFINED INSTALL_INCLUDE_DIR)
     set(INSTALL_INCLUDE_DIR "include/godlike" CACHE STRING "Path to directory holding headers")
 endif()
