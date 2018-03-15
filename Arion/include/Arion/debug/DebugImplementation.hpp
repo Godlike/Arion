@@ -103,7 +103,7 @@ public:
      */
     static void GjkCall(arion::intersection::gjk::Simplex& simplex, bool end)
     {
-        gjkCallback(simplex, end);
+        s_gjkCallback(simplex, end);
     }
 
     /**
@@ -115,7 +115,7 @@ public:
             std::function<void(arion::intersection::gjk::Simplex&, bool)> callback
         )
     {
-        gjkCallback = callback;
+        s_gjkCallback = callback;
     }
 
 private:
@@ -134,7 +134,7 @@ private:
     }
 
     //! Stores GJK callback function
-    static std::function<void(arion::intersection::gjk::Simplex&, bool)> gjkCallback;
+    static std::function<void(arion::intersection::gjk::Simplex&, bool)> s_gjkCallback;
 
     /**
     * @brief EPA debug call function

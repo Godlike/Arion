@@ -49,10 +49,10 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
         double const bdist = epona::LineSegmentPointDistance(simplex.vertices[0], simplex.vertices[1], b);
 
         simplex.supportVertices[3] = epona::fp::IsGreater(adist, bdist)
-            ? gjk::Simplex::SupportVertices{ 
+            ? gjk::Simplex::SupportVertices{
                 cso::Support(aShape,  glm::normalize( orthogonalDirection)),
                 cso::Support(bShape, -glm::normalize( orthogonalDirection)) }
-            : gjk::Simplex::SupportVertices{ 
+            : gjk::Simplex::SupportVertices{
                 cso::Support(aShape,  glm::normalize(-orthogonalDirection)),
                 cso::Support(bShape, -glm::normalize(-orthogonalDirection)) };
 
@@ -74,9 +74,9 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
         glm::dvec3 const b = cso::Support(aShape, bShape, glm::normalize(-ABC));
 
         simplex.supportVertices[3] = epona::fp::IsGreater(hyperPlane.Distance(a), hyperPlane.Distance(b))
-            ? gjk::Simplex::SupportVertices{ cso::Support(aShape, glm::normalize( ABC)), 
+            ? gjk::Simplex::SupportVertices{ cso::Support(aShape, glm::normalize( ABC)),
                 cso::Support(bShape, -glm::normalize( ABC)) }
-            : gjk::Simplex::SupportVertices{ cso::Support(aShape, glm::normalize(-ABC)), 
+            : gjk::Simplex::SupportVertices{ cso::Support(aShape, glm::normalize(-ABC)),
                 cso::Support(bShape, -glm::normalize(-ABC)) };
 
         simplex.vertices[3] = epona::fp::IsGreater(hyperPlane.Distance(a), hyperPlane.Distance(b)) ? a : b;
@@ -129,8 +129,8 @@ ContactManifold CalculateContactManifold(
     std::vector<glm::dvec3> polytopeVertices{ simplex.vertices.begin(), simplex.vertices.end() };
     ConvexHull convexHull(polytopeVertices);
     convexHull.Calculate();
-    std::vector<gjk::Simplex::SupportVertices> supportVertices{ 
-        simplex.supportVertices.begin(), simplex.supportVertices.end() 
+    std::vector<gjk::Simplex::SupportVertices> supportVertices{
+        simplex.supportVertices.begin(), simplex.supportVertices.end()
     };
 
     //Support information
@@ -160,7 +160,7 @@ ContactManifold CalculateContactManifold(
         glm::dvec3 const supportVertex  = cso::Support(aShape, bShape, direction);
         double const supportVertexDistance = glm::abs(glm::dot(supportVertex, direction));
 
-        //Check if we can expand polytopne in the new direction
+        //Check if we can expand polytope in the new direction
         endEpa = !(epona::fp::IsGreater(supportVertexDistance, closestFaceDistance) && --maxIterations);
         if (!endEpa)
         {
@@ -197,11 +197,11 @@ ContactManifold CalculateContactManifold(
     //Calculate contact points on the primitives
     std::array<gjk::Simplex::SupportVertices, 3> const supportFaceVertices{{
         supportVertices[faceIndices[0]], supportVertices[faceIndices[1]], supportVertices[faceIndices[2]] }};
-    glm::dvec3 const aContactPointWorld = supportFaceVertices[0].aSupportVertex * xyz.x 
-        + supportFaceVertices[1].aSupportVertex * xyz.y 
+    glm::dvec3 const aContactPointWorld = supportFaceVertices[0].aSupportVertex * xyz.x
+        + supportFaceVertices[1].aSupportVertex * xyz.y
         + supportFaceVertices[2].aSupportVertex * xyz.z;
-    glm::dvec3 const bContactPointWorld = supportFaceVertices[0].bSupportVertex * xyz.x 
-        + supportFaceVertices[1].bSupportVertex * xyz.y 
+    glm::dvec3 const bContactPointWorld = supportFaceVertices[0].bSupportVertex * xyz.x
+        + supportFaceVertices[1].bSupportVertex * xyz.y
         + supportFaceVertices[2].bSupportVertex * xyz.z;
 
     //Debug call

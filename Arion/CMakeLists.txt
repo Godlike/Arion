@@ -40,6 +40,7 @@ set(ARION_HEADERS
     include/Arion/ConfigurationSpaceObject.hpp
     include/Arion/GilbertJohnsonKeerthi.hpp
     include/Arion/ExpandingPolytopeAlgorithm.hpp
+    include/Arion/SimpleShapeIntersection.hpp
     include/Arion/SimpleShapeIntersectionDetector.hpp
     include/Arion/BoundingVolumes.hpp
 )

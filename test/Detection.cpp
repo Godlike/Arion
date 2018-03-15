@@ -12,6 +12,7 @@
 TEST_CASE("Sphere-Sphere Collision", "[collision][sphere]")
 {
     using namespace arion;
+    using namespace intersection;
 
     SimpleShapeIntersectionDetector detector;
     Sphere aSphere(glm::dvec3(0, 0, 0), glm::dquat{0, 0, 0, 0}, 2.0);
