@@ -16,6 +16,7 @@ namespace arion
 {
 namespace debug
 {
+
 #ifdef ARION_DEBUG
     using Debug = DebugImplementation;
 #else

@@ -5,7 +5,10 @@
 */
 #include <Arion/SimpleShapeIntersectionDetector.hpp>
 
-using namespace arion;
+namespace arion
+{
+namespace intersection
+{
 
 SimpleShapeIntersectionDetector::SimpleShapeIntersectionDetector()
     : m_intersectionCaches(s_unorderedMapInitialPrimeSize, ShapeTypePairHasher())
@@ -139,3 +142,6 @@ size_t SimpleShapeIntersectionDetector::ShapeTypePairHasher::operator()(ShapeTyp
     return std::hash<uint32_t>{}(static_cast<uint32_t>(p.first))
         ^ std::hash<uint32_t>{}(static_cast<uint32_t>(p.second));
 }
+
+} // namespace intersection
+} // namespace arion
