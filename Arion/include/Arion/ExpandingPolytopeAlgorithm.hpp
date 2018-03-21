@@ -32,6 +32,17 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
     using namespace arion;
     using namespace intersection;
 
+    if (1 == simplex.size)
+    {
+        glm::dvec3 const A0 = -glm::normalize(simplex.vertices[0]);
+        simplex.supportVertices[1] = gjk::Simplex::SupportVertices{
+            cso::Support(aShape,  A0), 
+            cso::Support(bShape, -A0),
+        };
+        simplex.vertices[1] = cso::Support(aShape, bShape, A0);
+        ++simplex.size;
+    }
+
     if (2 == simplex.size)
     {
         glm::dvec3 const A0 = -simplex.vertices[1];
@@ -207,7 +218,7 @@ ContactManifold CalculateContactManifold(
     //Debug call
     debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, polytopeContactPoint, direction);
 
-    return ContactManifold{
+    ContactManifold const manifold {
         epona::WorldToModelSpace(aContactPointWorld, -aShape.centerOfMass, glm::inverse(glm::toMat3(aShape.orientation))),
         epona::WorldToModelSpace(bContactPointWorld, -bShape.centerOfMass, glm::inverse(glm::toMat3(bShape.orientation))),
         aContactPointWorld,
@@ -215,6 +226,8 @@ ContactManifold CalculateContactManifold(
         direction,
         closestFaceDistance
     };
+
+    return manifold;
 }
 } // namespace epa
 } // namespace intersection
