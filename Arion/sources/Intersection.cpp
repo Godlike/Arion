@@ -12,7 +12,8 @@
 
 #include <algorithm>
 
-using namespace arion;
+namespace arion
+{
 
 bool intersection::CheckRaySphereIntersection(
     glm::dvec3 const& raySphere, double sphereRadius, glm::dvec3 const& rayDirection
@@ -108,3 +109,5 @@ bool intersection::IsPointInsideTriangle(
         && IsSameSide(triangleVertex1, triangleVertex3, triangleVertex2, point)
         && IsSameSide(triangleVertex2, triangleVertex3, triangleVertex1, point);
 }
+
+} // namespace arion

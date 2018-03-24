@@ -36,7 +36,7 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
     {
         glm::dvec3 const A0 = -glm::normalize(simplex.vertices[0]);
         simplex.supportVertices[1] = gjk::Simplex::SupportVertices{
-            cso::Support(aShape,  A0), 
+            cso::Support(aShape,  A0),
             cso::Support(bShape, -A0),
         };
         simplex.vertices[1] = cso::Support(aShape, bShape, A0);
@@ -102,17 +102,6 @@ namespace intersection
 {
 namespace epa
 {
-/** Stores contact information */
-struct ContactManifold
-{
-    glm::dvec3 aContactPointModelSpace;
-    glm::dvec3 bContactPointModelSpace;
-    glm::dvec3 aContactPointWorldSpace;
-    glm::dvec3 bContactPointWorldSpace;
-    glm::dvec3 contactNormal;
-    double penetration;
-};
-
 /**
  * @brief  Calculates contact manifold using Expanding Polytope Algorithm
  *
@@ -218,11 +207,15 @@ ContactManifold CalculateContactManifold(
     //Debug call
     debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, polytopeContactPoint, direction);
 
-    ContactManifold const manifold {
-        epona::WorldToModelSpace(aContactPointWorld, -aShape.centerOfMass, glm::inverse(glm::toMat3(aShape.orientation))),
-        epona::WorldToModelSpace(bContactPointWorld, -bShape.centerOfMass, glm::inverse(glm::toMat3(bShape.orientation))),
-        aContactPointWorld,
-        bContactPointWorld,
+    ContactManifold const manifold
+    {
+        ContactManifold::ContactPoints
+        {
+            epona::WorldToModelSpace(aContactPointWorld, -aShape.centerOfMass, glm::toMat3(glm::inverse(aShape.orientation))),
+            epona::WorldToModelSpace(bContactPointWorld, -bShape.centerOfMass, glm::toMat3(glm::inverse(bShape.orientation))),
+            aContactPointWorld,
+            bContactPointWorld,
+        },
         direction,
         closestFaceDistance
     };

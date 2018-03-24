@@ -111,6 +111,25 @@ SimpleShapeIntersectionDetector::SimpleShapeIntersectionDetector()
         = intersection::CalculatePenetration<Box, Sphere>;
     m_calculatePenetrationFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::BOX)]
         = intersection::CalculatePenetration<Box, Box>;
+
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactManifold<Plane, Plane>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactManifold<Plane, Sphere>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::PLANE, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactManifold<Plane, Box>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactManifold<Sphere, Plane>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactManifold<Sphere, Sphere>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::SPHERE, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactManifold<Sphere, Box>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::PLANE)]
+        = intersection::CalculateContactManifold<Box, Plane>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::SPHERE)]
+        = intersection::CalculateContactManifold<Box, Sphere>;
+    m_calculateContactManifoldFunctors[std::make_pair(SimpleShape::Type::BOX, SimpleShape::Type::BOX)]
+        = intersection::CalculateContactManifold<Box, Box>;
 }
 
 bool SimpleShapeIntersectionDetector::CalculateIntersection(SimpleShape const* a, SimpleShape const* b)
@@ -125,7 +144,7 @@ glm::dvec3 SimpleShapeIntersectionDetector::CalculateContactNormal(SimpleShape c
         a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
 }
 
-std::pair<glm::dvec3, glm::dvec3> SimpleShapeIntersectionDetector::CalculateContactPoints(SimpleShape const* a, SimpleShape const* b)
+ContactPoints SimpleShapeIntersectionDetector::CalculateContactPoints(SimpleShape const* a, SimpleShape const* b)
 {
     return m_calculateContactPointsFunctors[std::make_pair(a->type, b->type)](
         a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
@@ -134,6 +153,13 @@ std::pair<glm::dvec3, glm::dvec3> SimpleShapeIntersectionDetector::CalculateCont
 double SimpleShapeIntersectionDetector::CalculatePenetration(SimpleShape const* a, SimpleShape const* b)
 {
     return m_calculatePenetrationFunctors[std::make_pair(a->type, b->type)](
+        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+}
+
+ContactManifold SimpleShapeIntersectionDetector::CalculateContactManifold(SimpleShape const* a,
+    SimpleShape const* b)
+{
+    return m_calculateContactManifoldFunctors[std::make_pair(a->type, b->type)](
         a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
 }
 
