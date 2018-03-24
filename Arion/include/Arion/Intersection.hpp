@@ -13,6 +13,25 @@ namespace arion
 {
 namespace intersection
 {
+
+/** Stores contact information */
+struct ContactManifold
+{
+    struct ContactPoints
+    {
+        glm::dvec3 aModelSpace;
+        glm::dvec3 bModelSpace;
+        glm::dvec3 aWorldSpace;
+        glm::dvec3 bWorldSpace;
+    };
+
+    ContactPoints contactPoints;
+    glm::dvec3 contactNormal;
+    double penetration;
+};
+
+using ContactPoints = ContactManifold::ContactPoints;
+
 /** Stores ray factors for Ray collisions */
 struct RayIntersectionFactors
 {
