@@ -37,7 +37,7 @@ public:
     bool CalculateIntersection(SimpleShape const* a, SimpleShape const* b);
 
     /**
-     * @brief Calculates surface contact normal of b shape
+     * @brief Calculates surface contact normal of a shape
      *
      * @attention Must be called strictly after CalculateIntersection function call, otherwise result is undefined
      *
