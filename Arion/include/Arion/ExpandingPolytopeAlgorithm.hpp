@@ -211,8 +211,6 @@ ContactManifold CalculateContactManifold(
     {
         ContactManifold::ContactPoints
         {
-            epona::WorldToModelSpace(aContactPointWorld, -aShape.centerOfMass, glm::toMat3(glm::inverse(aShape.orientation))),
-            epona::WorldToModelSpace(bContactPointWorld, -bShape.centerOfMass, glm::toMat3(glm::inverse(bShape.orientation))),
             aContactPointWorld,
             bContactPointWorld,
         },

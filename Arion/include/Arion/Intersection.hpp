@@ -19,14 +19,12 @@ struct ContactManifold
 {
     struct ContactPoints
     {
-        glm::dvec3 aModelSpace;
-        glm::dvec3 bModelSpace;
         glm::dvec3 aWorldSpace;
         glm::dvec3 bWorldSpace;
     };
 
-    ContactPoints contactPoints;
-    glm::dvec3 contactNormal;
+    ContactPoints points;
+    glm::dvec3 normal;
     double penetration;
 };
 

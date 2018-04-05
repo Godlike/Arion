@@ -49,7 +49,7 @@ template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(SimpleShape const* a, SimpleShape const* b, CacheBase* cache);
 
 /**
- * @brief Calculates surface contact normal of a shape using shapes and cache data and returns it
+ * @brief Calculates surface contact normal of shape @p a using shapes and cache data and returns it
  *
  * @attention Must be called strictly after the corresponding CalculateIntersection function call, otherwise result is undefined
  *
@@ -126,8 +126,8 @@ ContactManifold CalculateContactManifold(SimpleShape const* a, SimpleShape const
 {
     ContactManifold manifold;
 
-    manifold.contactNormal = CalculateContactNormal<ShapeA, ShapeB>(a, b, cache);
-    manifold.contactPoints = CalculateContactPoints<ShapeA, ShapeB>(a, b, cache);
+    manifold.normal = CalculateContactNormal<ShapeA, ShapeB>(a, b, cache);
+    manifold.points = CalculateContactPoints<ShapeA, ShapeB>(a, b, cache);
     manifold.penetration = CalculatePenetration<ShapeA, ShapeB>(a, b, cache);
 
     return manifold;
@@ -300,12 +300,8 @@ template <>
 inline ContactPoints CalculateContactPoints<Ray, Ray>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Ray, Ray>*>(cacheBase);
-    auto const aRay = static_cast<Ray const*>(a);
-    auto const bRay = static_cast<Ray const*>(b);
 
     return {
-        epona::WorldToModelSpace(cache->aClosestApproach, -aRay->centerOfMass, glm::toMat3(glm::inverse(aRay->orientation))),
-        epona::WorldToModelSpace(cache->bClosestApproach, -bRay->centerOfMass, glm::toMat3(glm::inverse(bRay->orientation))),
         cache->aClosestApproach,
         cache->bClosestApproach,
     };
@@ -343,12 +339,8 @@ template <>
 inline ContactPoints CalculateContactPoints<Ray, Plane>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Ray, Plane>*>(cacheBase);
-    auto const ray = static_cast<Ray const*>(a);
-    auto const plane = static_cast<Plane const*>(b);
 
     return {
-        epona::WorldToModelSpace(cache->contact, -ray->centerOfMass, glm::toMat3(glm::inverse(ray->orientation))),
-        epona::WorldToModelSpace(cache->contact, -plane->centerOfMass, glm::toMat3(glm::inverse(plane->orientation))),
         cache->contact,
         cache->contact,
     };
@@ -400,12 +392,8 @@ template <>
 inline ContactPoints CalculateContactPoints<Ray, Sphere>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Ray, Sphere>*>(cacheBase);
-    auto const ray = static_cast<Ray const*>(a);
-    auto const sphere = static_cast<Sphere const*>(b);
 
     return {
-        epona::WorldToModelSpace(cache->inPoint, -ray->centerOfMass, glm::toMat3(glm::inverse(ray->orientation))),
-        epona::WorldToModelSpace(cache->inPoint, -sphere->centerOfMass, glm::toMat3(glm::inverse(sphere->orientation))),
         cache->inPoint,
         cache->inPoint
     };
@@ -463,12 +451,8 @@ template <>
 inline ContactPoints CalculateContactPoints<Ray, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Ray, Box>*>(cacheBase);
-    auto const ray = static_cast<Ray const*>(a);
-    auto const box = static_cast<Box const*>(b);
 
     return {
-        epona::WorldToModelSpace(cache->inPoint, -ray->centerOfMass, glm::toMat3(glm::inverse(ray->orientation))),
-        epona::WorldToModelSpace(cache->inPoint, -box->centerOfMass, glm::toMat3(glm::inverse(box->orientation))),
         cache->inPoint,
         cache->inPoint
     };
@@ -506,8 +490,6 @@ inline ContactPoints CalculateContactPoints<Plane, Ray>(SimpleShape const* a, Si
     auto const contactPoints = CalculateContactPoints<Ray, Plane>(b, a, &cache->rpCache);
 
     return {
-        contactPoints.bModelSpace,
-        contactPoints.aModelSpace,
         contactPoints.bWorldSpace,
         contactPoints.aWorldSpace,
     };
@@ -551,8 +533,6 @@ inline ContactPoints CalculateContactPoints<Plane, Plane>(SimpleShape const* a, 
         * glm::dot(aPlane->normal, bHyperPlane.GetDistance() * bHyperPlane.GetNormal());
 
     return {
-        epona::WorldToModelSpace(contact, -aPlane->centerOfMass, glm::toMat3(glm::inverse(aPlane->orientation))),
-        epona::WorldToModelSpace(contact, -bPlane->centerOfMass, glm::toMat3(glm::inverse(bPlane->orientation))),
         contact,
         contact,
     };
@@ -598,10 +578,6 @@ inline ContactPoints CalculateContactPoints<Plane, Sphere>(SimpleShape const* a,
     ContactPoints contactPoints;
     contactPoints.aWorldSpace = hyperPlane.ClosestPoint(sphere->centerOfMass);
     contactPoints.bWorldSpace = (-plane->normal * sphere->radius + sphere->centerOfMass);
-    contactPoints.aModelSpace = epona::WorldToModelSpace(
-        contactPoints.aWorldSpace, -plane->centerOfMass, glm::toMat3(glm::inverse(plane->orientation)));
-    contactPoints.bModelSpace = epona::WorldToModelSpace(
-        contactPoints.bWorldSpace, -sphere->centerOfMass, glm::toMat3(glm::inverse(sphere->orientation)));
 
     return contactPoints;
 }
@@ -658,7 +634,6 @@ inline ContactPoints CalculateContactPoints<Plane, Box>(SimpleShape const* a, Si
 {
     auto cache = static_cast<Cache<Plane, Box>*>(cacheBase);
     auto const plane = static_cast<Plane const*>(a);
-    auto const box = static_cast<Box const*>(b);
     epona::HyperPlane hyperPlane(plane->normal, plane->centerOfMass);
 
     uint8_t contactPointCounter = 0;
@@ -678,10 +653,6 @@ inline ContactPoints CalculateContactPoints<Plane, Box>(SimpleShape const* a, Si
     ContactPoints contactPoints;
     contactPoints.aWorldSpace = hyperPlane.ClosestPoint(cache->boxWorldContactPoint);
     contactPoints.bWorldSpace = cache->boxWorldContactPoint;
-    contactPoints.aModelSpace = epona::WorldToModelSpace(
-        contactPoints.aWorldSpace, -plane->centerOfMass, glm::toMat3(glm::inverse(plane->orientation)));
-    contactPoints.bModelSpace = epona::WorldToModelSpace(
-        contactPoints.bWorldSpace, -box->centerOfMass, glm::toMat3(glm::inverse(box->orientation)));
 
     return contactPoints;
 }
@@ -718,8 +689,6 @@ inline ContactPoints CalculateContactPoints<Sphere, Ray>(SimpleShape const* a, S
     auto cache = static_cast<Cache<Sphere, Ray>*>(cacheBase);
     auto const rsContactPoints = CalculateContactPoints<Ray, Sphere>(b, a, &cache->rsCache);
     return {
-        rsContactPoints.bModelSpace,
-        rsContactPoints.aModelSpace,
         rsContactPoints.bWorldSpace,
         rsContactPoints.aWorldSpace,
     };
@@ -756,8 +725,6 @@ inline ContactPoints CalculateContactPoints<Sphere, Plane>(SimpleShape const* a,
     auto cache = static_cast<Cache<Sphere, Plane>*>(cacheBase);
     auto const psContactPoints = CalculateContactPoints<Plane, Sphere>(b, a, &cache->psCache);
     return {
-        psContactPoints.bModelSpace,
-        psContactPoints.aModelSpace,
         psContactPoints.bWorldSpace,
         psContactPoints.aWorldSpace,
     };
@@ -805,8 +772,6 @@ inline ContactPoints CalculateContactPoints<Sphere, Sphere>(SimpleShape const* a
     ContactPoints contactPoints;
     contactPoints.aWorldSpace = cache->contactNormal * aSphere->radius + aSphere->centerOfMass;
     contactPoints.bWorldSpace = -cache->contactNormal * bSphere->radius + bSphere->centerOfMass;
-    contactPoints.aModelSpace = cache->contactNormal * aSphere->radius;
-    contactPoints.bModelSpace = -cache->contactNormal * bSphere->radius;
 
     return contactPoints;
 }
@@ -841,7 +806,7 @@ inline glm::dvec3 CalculateContactNormal<Sphere, Box>(SimpleShape const* a, Simp
 
     cache->manifold = epa::CalculateContactManifold(*sphere, *box, cache->simplex);
 
-    return cache->manifold.contactNormal;
+    return cache->manifold.normal;
 }
 
 /** Sphere, Box CalculateContactPoints specialization */
@@ -849,7 +814,7 @@ template <>
 inline ContactPoints CalculateContactPoints<Sphere, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Sphere, Box> const*>(cacheBase);
-    return cache->manifold.contactPoints;
+    return cache->manifold.points;
 }
 
 /** Sphere, Box CalculatePenetration specialization */
@@ -912,8 +877,6 @@ inline ContactPoints CalculateContactPoints<Box, Ray>(SimpleShape const* a, Simp
     auto cache = static_cast<Cache<Box, Ray>*>(cacheBase);
     auto const contactPoints = CalculateContactPoints<Ray, Box>(b, a, &cache->rbCache);
     return {
-        contactPoints.bModelSpace,
-        contactPoints.aModelSpace,
         contactPoints.bWorldSpace,
         contactPoints.aWorldSpace,
     };
@@ -969,8 +932,6 @@ inline ContactPoints CalculateContactPoints<Box, Plane>(SimpleShape const* a, Si
     auto cache = static_cast<Cache<Box, Plane>*>(cacheBase);
     auto const contactPoints = CalculateContactPoints<Plane, Box>(b, a, &cache->pbCache);
     return {
-        contactPoints.bModelSpace,
-        contactPoints.aModelSpace,
         contactPoints.bWorldSpace,
         contactPoints.aWorldSpace,
     };
@@ -1005,7 +966,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Sphere>(SimpleShape const* a, Simp
     auto const sphere = static_cast<Sphere const*>(b);
 
     cache->manifold = epa::CalculateContactManifold(*box, *sphere, cache->simplex);
-    return cache->manifold.contactNormal;
+    return cache->manifold.normal;
 }
 
 /** Box, Sphere CalculateContactPoints specialization */
@@ -1013,7 +974,7 @@ template <>
 inline ContactPoints CalculateContactPoints<Box, Sphere>(SimpleShape const* a, SimpleShape const *b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Box, Sphere> const*>(cacheBase);
-    return cache->manifold.contactPoints;
+    return cache->manifold.points;
 }
 
 /** Box, Sphere CalculatePenetration specialization */
@@ -1045,7 +1006,7 @@ inline glm::dvec3 CalculateContactNormal<Box, Box>(SimpleShape const* a, SimpleS
     auto const bBox = static_cast<Box const*>(b);
 
     cache->manifold = epa::CalculateContactManifold(*aBox, *bBox, cache->simplex);
-    return cache->manifold.contactNormal;
+    return cache->manifold.normal;
 }
 
 /** Box, Box CalculateContactPoints specialization */
@@ -1053,7 +1014,7 @@ template <>
 inline ContactPoints CalculateContactPoints<Box, Box>(SimpleShape const* a, SimpleShape const* b, CacheBase* cacheBase)
 {
     auto const cache = static_cast<Cache<Box, Box> const*>(cacheBase);
-    return cache->manifold.contactPoints;
+    return cache->manifold.points;
 }
 
 /** Box, Box CalculatePenetration specialization */
