@@ -43,6 +43,7 @@ set(ARION_HEADERS
     include/Arion/SimpleShapeIntersection.hpp
     include/Arion/SimpleShapeIntersectionDetector.hpp
     include/Arion/BoundingVolumes.hpp
+    include/Arion/RayCasting.hpp
 )
 set(ARION_SOURCES
     sources/DebugImplementation.cpp
@@ -52,6 +53,7 @@ set(ARION_SOURCES
     sources/GilbertJohnsonKeerthi.cpp
     sources/SimpleShapeIntersectionDetector.cpp
     sources/BoundingVolumes.cpp
+    sources/RayCasting.cpp
 )
 
 if (MSVC)
