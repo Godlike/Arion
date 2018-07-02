@@ -48,7 +48,6 @@ set(ARION_SOURCES
     sources/DebugImplementation.cpp
     sources/Intersection.cpp
     sources/Shape.cpp
-    sources/ConfigurationSpaceObject.cpp
     sources/GilbertJohnsonKeerthi.cpp
     sources/SimpleShapeIntersectionDetector.cpp
     sources/BoundingVolumes.cpp
