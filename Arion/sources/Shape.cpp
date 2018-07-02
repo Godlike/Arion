@@ -130,4 +130,15 @@ Box::Box(
     , jAxis(j)
     , kAxis(k)
 {
+    glm::dvec3 const jPlusK = jAxis + kAxis;
+    glm::dvec3 const jMinusK = jAxis - kAxis;
+
+    vertices[0] = (iAxis + jPlusK);
+    vertices[1] = (iAxis - jPlusK);
+    vertices[2] = (jAxis - iAxis + kAxis);
+    vertices[3] = (-iAxis - jPlusK);
+    vertices[4] = (iAxis + jMinusK);
+    vertices[5] = (iAxis - jMinusK);
+    vertices[6] = (jAxis - iAxis - kAxis);
+    vertices[7] = (-iAxis - jMinusK);
 }

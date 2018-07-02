@@ -12,7 +12,6 @@
 
 #include <glm/glm.hpp>
 
-#include <algorithm>
 #include <array>
 #include <vector>
 
@@ -101,21 +100,24 @@ bool CalculateSimplex(
         Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100
     )
 {
+    glm::dquat const inverseOrientationA = glm::inverse(aShape.orientation);
+    glm::dquat const inverseOrientationB = glm::inverse(bShape.orientation);
+
     do
     {
         //Add new vertex to the simplex
         simplex.supportVertices[simplex.size++] = {
-            cso::Support(aShape,  direction),
-            cso::Support(bShape, -direction),
+            cso::LazySupport(aShape, inverseOrientationA *  direction),
+            cso::LazySupport(bShape, inverseOrientationB * -direction),
         };
-        simplex.vertices[simplex.size - 1] = cso::Support(aShape, bShape, direction);
+        simplex.vertices[simplex.size - 1] = simplex.supportVertices[simplex.size - 1].aSupportVertex
+            - simplex.supportVertices[simplex.size - 1].bSupportVertex;
 
         //Debug call
         debug::Debug::GjkCall(simplex, false);
 
         //Calculate if the new vertex is past the origin
-        double const scalarDirectionProjection = glm::dot(simplex.vertices[simplex.size - 1], direction);
-        if (epona::fp::IsLess(scalarDirectionProjection, 0.0))
+        if (epona::fp::IsLess(glm::dot(simplex.vertices[simplex.size - 1], direction), 0.0))
         {
             return false;
         }
@@ -142,7 +144,7 @@ bool CalculateSimplex(
  * @sa CalculateSimplex, CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape)
  */
 template <typename ShapeA, typename ShapeB>
-bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
+bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 10)
 {
     return CalculateIntersection(Simplex(), aShape, bShape, maxIterations);
 }
@@ -163,14 +165,13 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t m
  * @sa CalculateSimplex, CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
  */
 template <typename ShapeA, typename ShapeB>
-bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
+bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 10)
 {
     glm::dvec3 const direction = glm::normalize(glm::dvec3{ 1,1,1 });
-    simplex = {
-        {{{ cso::Support(aShape, direction), cso::Support(bShape, -direction) }}},
-        {{ cso::Support(aShape, bShape, direction) }},
-        1
-    };
+
+    simplex.size = 1;
+    simplex.supportVertices[0] = { cso::LazySupport(aShape, direction), cso::LazySupport(bShape, -direction) };
+    simplex.vertices[0] = simplex.supportVertices[0].aSupportVertex - simplex.supportVertices[0].bSupportVertex;
 
     return CalculateSimplex(simplex, aShape, bShape, glm::normalize(-simplex.vertices[0]), maxIterations);
 }

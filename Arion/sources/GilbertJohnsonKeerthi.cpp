@@ -187,22 +187,20 @@ glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
 */
 glm::dvec3 NearestSimplexTetrahedron(intersection::gjk::Simplex& simplex)
 {
-    std::array<std::array<uint8_t, 3>, 3> const simplices{{
-        std::array<uint8_t, 3>{{0, 1, 3}},
-        std::array<uint8_t, 3>{{1, 2, 3}},
-        std::array<uint8_t, 3>{{0, 2, 3}},
-    }};
+    uint8_t const simplices[3][3] = {
+        {0, 1, 3},
+        {1, 2, 3},
+        {0, 2, 3},
+    };
 
-    std::array<glm::dvec3, 4> const& vertices = simplex.vertices;
+    double const planeOriginDistances[3] = {
+        epona::HyperPlane{ simplex.vertices[0], simplex.vertices[1], simplex.vertices[3], &simplex.vertices[2] }.GetDistance(),
+        epona::HyperPlane{ simplex.vertices[1], simplex.vertices[2], simplex.vertices[3], &simplex.vertices[0] }.GetDistance(),
+        epona::HyperPlane{ simplex.vertices[0], simplex.vertices[2], simplex.vertices[3], &simplex.vertices[1] }.GetDistance()
+    };
 
-    std::array<double, 3> const planeOriginDistances{{
-        epona::HyperPlane{ vertices[0], vertices[1], vertices[3], &vertices[2] }.GetDistance(),
-        epona::HyperPlane{ vertices[1], vertices[2], vertices[3], &vertices[0] }.GetDistance(),
-        epona::HyperPlane{ vertices[0], vertices[2], vertices[3], &vertices[1] }.GetDistance()
-    }};
-
-    size_t const closestPlaneIndex = std::distance(planeOriginDistances.begin(),
-        std::min_element(planeOriginDistances.begin(), planeOriginDistances.end()));
+    size_t const closestPlaneIndex = std::distance(planeOriginDistances,
+        std::min_element(planeOriginDistances, planeOriginDistances + 3));
 
     simplex.supportVertices = {{
         simplex.supportVertices[simplices[closestPlaneIndex][0]],

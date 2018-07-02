@@ -145,6 +145,8 @@ public:
     glm::dvec3 iAxis;
     glm::dvec3 jAxis;
     glm::dvec3 kAxis;
+
+    glm::dvec3 vertices[8];
 };
 } // namespace arion
 #endif //ARION_SHAPE_HPP

@@ -134,26 +134,26 @@ SimpleShapeIntersectionDetector::SimpleShapeIntersectionDetector()
 
 bool SimpleShapeIntersectionDetector::CalculateIntersection(SimpleShape const* a, SimpleShape const* b)
 {
-    return m_calculateIntersectionFunctors[std::make_pair(a->type, b->type)](
-        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+    return m_calculateIntersectionFunctors.at(std::make_pair(a->type, b->type))(
+        a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
 glm::dvec3 SimpleShapeIntersectionDetector::CalculateContactNormal(SimpleShape const* a, SimpleShape const* b)
 {
-    return m_calculateContactNormalFunctors[std::make_pair(a->type, b->type)](
-        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+    return m_calculateContactNormalFunctors.at(std::make_pair(a->type, b->type))(
+        a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
 ContactPoints SimpleShapeIntersectionDetector::CalculateContactPoints(SimpleShape const* a, SimpleShape const* b)
 {
-    return m_calculateContactPointsFunctors[std::make_pair(a->type, b->type)](
-        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+    return m_calculateContactPointsFunctors.at(std::make_pair(a->type, b->type))(
+        a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
 double SimpleShapeIntersectionDetector::CalculatePenetration(SimpleShape const* a, SimpleShape const* b)
 {
-    return m_calculatePenetrationFunctors[std::make_pair(a->type, b->type)](
-        a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
+    return m_calculatePenetrationFunctors.at(std::make_pair(a->type, b->type))(
+        a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
 ContactManifold SimpleShapeIntersectionDetector::CalculateContactManifold(SimpleShape const* a,
@@ -165,8 +165,7 @@ ContactManifold SimpleShapeIntersectionDetector::CalculateContactManifold(Simple
 
 size_t SimpleShapeIntersectionDetector::ShapeTypePairHasher::operator()(ShapeTypePair const& p) const
 {
-    return std::hash<uint32_t>{}(static_cast<uint32_t>(p.first))
-        ^ std::hash<uint32_t>{}(static_cast<uint32_t>(p.second));
+    return static_cast<uint32_t>(p.first) ^ static_cast<uint32_t>(p.second);
 }
 
 } // namespace intersection
