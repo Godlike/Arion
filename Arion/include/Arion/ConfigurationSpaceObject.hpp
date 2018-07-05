@@ -30,6 +30,8 @@ inline glm::dvec3 LazySupport(Sphere const& sphere, glm::dvec3 direction)
 /**
 *  @brief  Calculates farthest vertex on the surface of the sphere in given direction
 *
+*  @note   This is an alias for the corresponding LazySupport function
+*
 *  @param  sphere      shape object
 *  @param  direction   normalized world space search vector
 *
@@ -37,7 +39,7 @@ inline glm::dvec3 LazySupport(Sphere const& sphere, glm::dvec3 direction)
 */
 inline glm::dvec3 Support(Sphere const& sphere, glm::dvec3 direction)
 {
-    return LazySupport(sphere, direction);;
+    return LazySupport(sphere, direction);
 }
 
 /**
