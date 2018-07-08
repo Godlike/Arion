@@ -8,7 +8,7 @@
 
 int main()
 {
-    arion::Shape shape;
+    arion::Shape shape = {};
     std::cout << shape.centerOfMass.x;
     return 0;
 }
