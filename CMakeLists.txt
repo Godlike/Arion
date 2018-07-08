@@ -12,7 +12,7 @@ option(ARION_BUILD_DEMOS "Build Arion demo."  ON)
 option(ARION_BUILD_TESTS "Build Arion tests." ON)
 option(ARION_BUILD_DEBUG "Build Arion debug." ON)
 
-message(STATUS "${PROJECT_NAME} configuration:")
+message(STATUS "${PROJECT_NAME} ${CMAKE_BUILD_TYPE} configuration:")
 message(STATUS "-- ARION_BUILD_DEMOS: ${ARION_BUILD_DEMOS}")
 message(STATUS "-- ARION_BUILD_TESTS: ${ARION_BUILD_TESTS}")
 message(STATUS "-- ARION_BUILD_DEBUG: ${ARION_BUILD_DEBUG}")
