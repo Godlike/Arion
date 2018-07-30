@@ -46,7 +46,7 @@ public:
      *
      * @return contact normal
      */
-    glm::dvec3 CalculateContactNormal(SimpleShape const* a, SimpleShape const* b);
+    glm::vec3 CalculateContactNormal(SimpleShape const* a, SimpleShape const* b);
 
     /**
      * @brief Calculates surface contact points of the given shapes in the world space
@@ -70,7 +70,7 @@ public:
      *
      * @return penetration depth
      */
-    double CalculatePenetration(SimpleShape const* a, SimpleShape const* b);
+    float CalculatePenetration(SimpleShape const* a, SimpleShape const* b);
 
    /**
     * @brief Calculates contact manifold for given shapes
@@ -119,7 +119,7 @@ private:
 
     std::unordered_map<
         ShapeTypePair,
-        glm::dvec3(*)(SimpleShape const*, SimpleShape const*, CacheBase*),
+        glm::vec3(*)(SimpleShape const*, SimpleShape const*, CacheBase*),
         ShapeTypePairHasher
     > m_calculateContactNormalFunctors;
 
@@ -131,7 +131,7 @@ private:
 
     std::unordered_map<
         ShapeTypePair,
-        double(*)(SimpleShape const*, SimpleShape const*, CacheBase*),
+        float(*)(SimpleShape const*, SimpleShape const*, CacheBase*),
         ShapeTypePairHasher
     > m_calculatePenetrationFunctors;
 

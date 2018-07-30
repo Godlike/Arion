@@ -138,7 +138,7 @@ bool SimpleShapeIntersectionDetector::CalculateIntersection(SimpleShape const* a
         a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
-glm::dvec3 SimpleShapeIntersectionDetector::CalculateContactNormal(SimpleShape const* a, SimpleShape const* b)
+glm::vec3 SimpleShapeIntersectionDetector::CalculateContactNormal(SimpleShape const* a, SimpleShape const* b)
 {
     return m_calculateContactNormalFunctors.at(std::make_pair(a->type, b->type))(
         a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
@@ -150,7 +150,7 @@ ContactPoints SimpleShapeIntersectionDetector::CalculateContactPoints(SimpleShap
         a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
 }
 
-double SimpleShapeIntersectionDetector::CalculatePenetration(SimpleShape const* a, SimpleShape const* b)
+float SimpleShapeIntersectionDetector::CalculatePenetration(SimpleShape const* a, SimpleShape const* b)
 {
     return m_calculatePenetrationFunctors.at(std::make_pair(a->type, b->type))(
         a, b, m_intersectionCaches.at(std::make_pair(a->type, b->type)).get());
@@ -159,7 +159,7 @@ double SimpleShapeIntersectionDetector::CalculatePenetration(SimpleShape const* 
 ContactManifold SimpleShapeIntersectionDetector::CalculateContactManifold(SimpleShape const* a,
     SimpleShape const* b)
 {
-    return m_calculateContactManifoldFunctors[std::make_pair(a->type, b->type)](
+    return m_calculateContactManifoldFunctors.at(std::make_pair(a->type, b->type))(
         a, b, m_intersectionCaches[std::make_pair(a->type, b->type)].get());
 }
 

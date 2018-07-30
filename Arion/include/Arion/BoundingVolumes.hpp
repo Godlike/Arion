@@ -26,9 +26,9 @@ struct Mesh
      * @param vertices vertex buffer data
      * @param indices index buffer data
      */
-    Mesh(std::vector<glm::dvec3> const& vertices, std::vector<glm::u64vec3> const& indices);
+    Mesh(std::vector<glm::vec3> const& vertices, std::vector<glm::u64vec3> const& indices);
 
-    std::vector<glm::dvec3> const& vertices;
+    std::vector<glm::vec3> const& vertices;
     std::vector<glm::u64vec3> const& indices;
 };
 
@@ -38,7 +38,7 @@ struct Mesh
  * @param indices set of indices for calculation
  * @return average vertex value
  */
-glm::dvec3 CalculateMeanVertex(
+glm::vec3 CalculateMeanVertex(
     volume::Mesh const& mesh, std::set<std::size_t> const& indices
 );
 
@@ -49,8 +49,8 @@ glm::dvec3 CalculateMeanVertex(
  * @param mean average vertex value for the given set
  * @return covariance matrix
  */
-glm::dmat3 CalculateCovarianceMatrix(
-    volume::Mesh const& mesh, std::set<std::size_t> const& indices, glm::dvec3 const& mean
+glm::mat3 CalculateCovarianceMatrix(
+    volume::Mesh const& mesh, std::set<std::size_t> const& indices, glm::vec3 const& mean
 );
 
 /**
@@ -60,8 +60,8 @@ glm::dmat3 CalculateCovarianceMatrix(
  * @param indices set of indices for calculation
  * @return extremal vertices
  */
-glm::dmat3 CalculateExtremalVertices(
-    glm::dmat3 const& basis, volume::Mesh const& mesh, std::set<std::size_t> const& indices
+glm::mat3 CalculateExtremalVertices(
+    glm::mat3 const& basis, volume::Mesh const& mesh, std::set<std::size_t> const& indices
 );
 
 namespace obb
@@ -77,12 +77,12 @@ public:
      */
     struct Box
     {
-        glm::dvec3 mean;
-        glm::dmat3 covariance;
-        glm::dmat3 eigenVectors;
-        glm::dmat3 eigenVectorsNormalized;
-        glm::dmat3 extremalVertices;
-        glm::dmat3 boxAxes;
+        glm::vec3 mean;
+        glm::mat3 covariance;
+        glm::mat3 eigenVectors;
+        glm::mat3 eigenVectorsNormalized;
+        glm::mat3 extremalVertices;
+        glm::mat3 boxAxes;
     };
 
     /**
@@ -119,16 +119,16 @@ public:
      */
     struct Box
     {
-        glm::dvec3 xMin;
-        glm::dvec3 xMax;
-        glm::dvec3 yMin;
-        glm::dvec3 yMax;
-        glm::dvec3 zMin;
-        glm::dvec3 zMax;
-        glm::dvec3 extremalMean;
-        glm::dvec3 xAxis;
-        glm::dvec3 yAxis;
-        glm::dvec3 zAxis;
+        glm::vec3 xMin;
+        glm::vec3 xMax;
+        glm::vec3 yMin;
+        glm::vec3 yMax;
+        glm::vec3 zMin;
+        glm::vec3 zMax;
+        glm::vec3 extremalMean;
+        glm::vec3 xAxis;
+        glm::vec3 yAxis;
+        glm::vec3 zAxis;
     };
 
     /**
@@ -185,11 +185,11 @@ public:
      */
     struct Sphere
     {
-        glm::dvec3 mean;
-        glm::dmat3 covariance;
-        glm::dvec3 eigenValues;
-        glm::dmat3 eigenVectors;
-        glm::dmat3 eigenVectorsNormalized;
+        glm::vec3 mean;
+        glm::mat3 covariance;
+        glm::vec3 eigenValues;
+        glm::mat3 eigenVectors;
+        glm::mat3 eigenVectorsNormalized;
     };
 
     /**
@@ -227,7 +227,7 @@ private:
      * @return bounding sphere shape
      */
     static arion::Sphere CalculateInitialBoundingSphere(
-        glm::dmat3 const& eigenVectors, glm::dvec3 const& eigenValues,
+        glm::mat3 const& eigenVectors, glm::vec3 const& eigenValues,
         Mesh const& mesh, std::set<std::size_t> const& indices
     );
 

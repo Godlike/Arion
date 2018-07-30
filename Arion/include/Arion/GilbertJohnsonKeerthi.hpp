@@ -27,15 +27,15 @@ struct Simplex
     //! Holds a pair of support vertices
     struct SupportVertices
     {
-        glm::dvec3 aSupportVertex;
-        glm::dvec3 bSupportVertex;
+        glm::vec3 aSupportVertex;
+        glm::vec3 bSupportVertex;
     };
 
     //! Simplex support vertices. Note that some vertices may be unused
     std::array<SupportVertices, 4> supportVertices;
 
     //! Simplex vertices. Note that some vertices may be unused
-    std::array<glm::dvec3, 4> vertices;
+    std::array<glm::vec3, 4> vertices;
 
     //! Indicated number of used vertices
     uint8_t size;
@@ -64,7 +64,7 @@ bool SimplexContainsOrigin(Simplex const& simplex);
  *
  * @return new search direction
  */
-glm::dvec3 NearestSimplex(Simplex& simplex);
+glm::vec3 NearestSimplex(Simplex& simplex);
 
 /**
  * @brief Checks if simplex contains origin
@@ -77,7 +77,7 @@ glm::dvec3 NearestSimplex(Simplex& simplex);
  *
  * @return @c true if simplex contains origin, @c false otherwise
  */
-bool DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction);
+bool DoSimplex(gjk::Simplex& simplex, glm::vec3& direction);
 
 /**
  * @brief  Calculates a tetrahedron from the CSO such that it contains the origin
@@ -97,11 +97,11 @@ bool DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction);
  */
 template <typename ShapeA, typename ShapeB>
 bool CalculateSimplex(
-        Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction, uint8_t maxIterations = 100
+        Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::vec3 direction, uint8_t maxIterations = 100
     )
 {
-    glm::dquat const inverseOrientationA = glm::inverse(aShape.orientation);
-    glm::dquat const inverseOrientationB = glm::inverse(bShape.orientation);
+    glm::quat const inverseOrientationA = glm::inverse(aShape.orientation);
+    glm::quat const inverseOrientationB = glm::inverse(bShape.orientation);
 
     do
     {
@@ -117,7 +117,7 @@ bool CalculateSimplex(
         debug::Debug::GjkCall(simplex, false);
 
         //Calculate if the new vertex is past the origin
-        if (epona::fp::IsLess(glm::dot(simplex.vertices[simplex.size - 1], direction), 0.0))
+        if (epona::fp::IsLess(glm::dot(simplex.vertices[simplex.size - 1], direction), 0.0f))
         {
             return false;
         }
@@ -167,7 +167,7 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t m
 template <typename ShapeA, typename ShapeB>
 bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 10)
 {
-    glm::dvec3 const direction = glm::normalize(glm::dvec3{ 1,1,1 });
+    glm::vec3 const direction = glm::normalize(glm::vec3{ 1,1,1 });
 
     simplex.size = 1;
     simplex.supportVertices[0] = { cso::LazySupport(aShape, direction), cso::LazySupport(bShape, -direction) };

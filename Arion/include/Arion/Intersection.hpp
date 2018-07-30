@@ -19,13 +19,13 @@ struct ContactManifold
 {
     struct ContactPoints
     {
-        glm::dvec3 aWorldSpace;
-        glm::dvec3 bWorldSpace;
+        glm::vec3 aWorldSpace;
+        glm::vec3 bWorldSpace;
     };
 
     ContactPoints points;
-    glm::dvec3 normal;
-    double penetration;
+    glm::vec3 normal;
+    float penetration;
 };
 
 using ContactPoints = ContactManifold::ContactPoints;
@@ -34,10 +34,10 @@ using ContactPoints = ContactManifold::ContactPoints;
 struct RayIntersectionFactors
 {
     //! Factor to closest to ray origin intersection point
-    double tMin;
+    float tMin;
 
     //! Factor to furthest from ray origin intersection point
-    double tMax;
+    float tMax;
 };
 
 /**
@@ -50,7 +50,7 @@ struct RayIntersectionFactors
  *  @return @c true if there is intersection, @c false otherwise
  */
 bool CheckRaySphereIntersection(
-    glm::dvec3 const& raySphere, double sphereRadius, glm::dvec3 const& rayDirection
+    glm::vec3 const& raySphere, float sphereRadius, glm::vec3 const& rayDirection
 );
 
 /**
@@ -65,14 +65,14 @@ bool CheckRaySphereIntersection(
  *  @return ray factors for intersection
  */
 RayIntersectionFactors CalculateRaySphereIntersectionFactors(
-    glm::dvec3 const& raySphere, double sphereRadius, glm::dvec3 const& rayDirection
+    glm::vec3 const& raySphere, float sphereRadius, glm::vec3 const& rayDirection
 );
 
 /** Stores AABB using minimum and maximum points */
 struct AabbExtremalVertices
 {
-    glm::dvec3 minVertex;
-    glm::dvec3 maxVertex;
+    glm::vec3 minVertex;
+    glm::vec3 maxVertex;
 };
 
 /**
@@ -86,8 +86,8 @@ struct AabbExtremalVertices
  *  @return ray factors for intersection
  */
 RayIntersectionFactors CalculateRayAabbIntersectionFactors(
-    glm::dvec3 const& boxMinPoint, glm::dvec3 const& boxMaxPoint,
-    glm::dvec3 const& rayDirection, glm::dvec3 const& rayOrigin
+    glm::vec3 const& boxMinPoint, glm::vec3 const& boxMaxPoint,
+    glm::vec3 const& rayDirection, glm::vec3 const& rayOrigin
 );
 
 /**
@@ -102,7 +102,7 @@ RayIntersectionFactors CalculateRayAabbIntersectionFactors(
   * @return AABB min and max points
   */
 AabbExtremalVertices MakeExtremalVerticesAabb(
-    glm::dvec3 const& i, glm::dvec3 const& j, glm::dvec3 const& k
+    glm::vec3 const& i, glm::vec3 const& j, glm::vec3 const& k
 );
 
 /**
@@ -122,7 +122,7 @@ bool CheckRayIntersectionFactors(RayIntersectionFactors factors);
  *
  *  @return @c true if vectors are at acute angle, @c false otherwise
  */
-inline bool IsAngleAcute(glm::dvec3 const& aVector, glm::dvec3 const& bVector)
+inline bool IsAngleAcute(glm::vec3 const& aVector, glm::vec3 const& bVector)
 {
     return epona::fp::IsGreater(glm::dot(aVector, bVector), 0);
 }
@@ -140,12 +140,12 @@ inline bool IsAngleAcute(glm::dvec3 const& aVector, glm::dvec3 const& bVector)
  *  @return @c true if points are on the same side of the halfspace, @c false otherwise
  */
 inline bool IsSameSide(
-    glm::dvec3 const& lineStart, glm::dvec3 const& lineEnd,
-    glm::dvec3 const& aPoint, glm::dvec3 const& bPoint
+    glm::vec3 const& lineStart, glm::vec3 const& lineEnd,
+    glm::vec3 const& aPoint, glm::vec3 const& bPoint
 )
 {
-    glm::dvec3 const cp1 = glm::cross(lineEnd - lineStart, aPoint - lineStart);
-    glm::dvec3 const cp2 = glm::cross(lineEnd - lineStart, bPoint - lineStart);
+    glm::vec3 const cp1 = glm::cross(lineEnd - lineStart, aPoint - lineStart);
+    glm::vec3 const cp2 = glm::cross(lineEnd - lineStart, bPoint - lineStart);
     return epona::fp::IsGreaterOrEqual(glm::dot(cp1, cp2), 0);
 }
 
@@ -160,8 +160,8 @@ inline bool IsSameSide(
  *  @return @c true if point is inside triangle, @c false otherwise
  */
 bool IsPointInsideTriangle(
-    glm::dvec3 const& triangleVertex1, glm::dvec3 const& triangleVertex2,
-    glm::dvec3 const& triangleVertex3, glm::dvec3 const& point
+    glm::vec3 const& triangleVertex1, glm::vec3 const& triangleVertex2,
+    glm::vec3 const& triangleVertex3, glm::vec3 const& point
 );
 } // namespace intersection
 } // namespace arion
