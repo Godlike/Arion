@@ -15,15 +15,15 @@
 using namespace arion;
 using namespace volume;
 
-volume::Mesh::Mesh(std::vector<glm::dvec3> const& vertices, std::vector<glm::u64vec3> const& indices)
+volume::Mesh::Mesh(std::vector<glm::vec3> const& vertices, std::vector<glm::u64vec3> const& indices)
     : vertices(vertices)
     , indices(indices)
 {
 }
 
-glm::dvec3 volume::CalculateMeanVertex(volume::Mesh const& mesh, std::set<std::size_t> const& indices)
+glm::vec3 volume::CalculateMeanVertex(volume::Mesh const& mesh, std::set<std::size_t> const& indices)
 {
-    glm::dvec3 sum{0, 0, 0};
+    glm::vec3 sum{0, 0, 0};
     for (auto index : indices)
     {
         auto const& face = mesh.indices[index];
@@ -33,28 +33,28 @@ glm::dvec3 volume::CalculateMeanVertex(volume::Mesh const& mesh, std::set<std::s
         sum += mesh.vertices[face[2]];
     }
 
-    glm::dvec3 const mean = 1.0 / (3.0 * indices.size()) * sum;
+    glm::vec3 const mean = 1.0f / (3.0f * indices.size()) * sum;
     return mean;
 }
 
-glm::dmat3 volume::CalculateCovarianceMatrix(
-    volume::Mesh const& mesh, std::set<std::size_t> const& indices, glm::dvec3 const& mean)
+glm::mat3 volume::CalculateCovarianceMatrix(
+    volume::Mesh const& mesh, std::set<std::size_t> const& indices, glm::vec3 const& mean)
 {
-    glm::dmat3 c(0.0);
+    glm::mat3 c(0.0);
 
     for (auto index : indices)
     {
         auto const& face = mesh.indices[index];
 
-        glm::dvec3 const p = mesh.vertices[face[0]] - mean;
-        glm::dvec3 const q = mesh.vertices[face[1]] - mean;
-        glm::dvec3 const r = mesh.vertices[face[2]] - mean;
+        glm::vec3 const p = mesh.vertices[face[0]] - mean;
+        glm::vec3 const q = mesh.vertices[face[1]] - mean;
+        glm::vec3 const r = mesh.vertices[face[2]] - mean;
 
         for (uint8_t j = 0; j < 3; ++j)
         {
             for (uint8_t k = 0; k < 3; ++k)
             {
-                double const v = p[j] * p[k] + q[j] * q[k] + r[j] * r[k];
+                float const v = p[j] * p[k] + q[j] * q[k] + r[j] * r[k];
                 c[j][k] += v;
             }
         }
@@ -72,17 +72,17 @@ glm::dmat3 volume::CalculateCovarianceMatrix(
     return c;
 }
 
-glm::dmat3 volume::CalculateExtremalVertices(
-    glm::dmat3 const& basis, volume::Mesh const& mesh, std::set<std::size_t> const& indices)
+glm::mat3 volume::CalculateExtremalVertices(
+    glm::mat3 const& basis, volume::Mesh const& mesh, std::set<std::size_t> const& indices)
 {
-    std::vector<glm::dvec3 const *> vertices;
+    std::vector<glm::vec3 const *> vertices;
     for (auto index : indices)
     {
         auto const& face = mesh.indices[index];
         vertices.insert(vertices.end(), {&mesh.vertices[face[0]], &mesh.vertices[face[1]], &mesh.vertices[face[2]]});
     }
 
-    glm::dmat3 extremal(0);
+    glm::mat3 extremal(0);
     for (uint8_t i = 0; i < 3; ++i)
     {
         auto maxVertex = *std::max_element(vertices.begin(), vertices.end(), [&basis, i](auto a, auto b) -> bool {
@@ -146,7 +146,7 @@ void aabb::AxisAlignedBoundingBox::CalculateExtremalVetices(
     using namespace std::placeholders;
 
     //ToDo: optimize it, currently O(n), should be possible to do O(log(n))
-    std::vector<glm::dvec3 const *> validVertices;
+    std::vector<glm::vec3 const *> validVertices;
     validVertices.reserve(indices.size() * 3);
     for (auto faceIndex : indices)
     {
@@ -156,7 +156,7 @@ void aabb::AxisAlignedBoundingBox::CalculateExtremalVetices(
         }
     }
 
-    static auto axisCompareVertices = [] (uint32_t axis, glm::dvec3 const* a, glm::dvec3 const* b) -> bool {
+    static auto axisCompareVertices = [] (uint32_t axis, glm::vec3 const* a, glm::vec3 const* b) -> bool {
         return (*a)[axis] < (*b)[axis];
     };
     static auto xCompareVertices = std::bind(axisCompareVertices, 0, _1, _2);
@@ -223,7 +223,7 @@ arion::Sphere sphere::BoundingSphere::GetVolume() const
 }
 
 arion::Sphere sphere::BoundingSphere::CalculateInitialBoundingSphere(
-    glm::dmat3 const& eigenVectors, glm::dvec3 const& eigenValues,
+    glm::mat3 const& eigenVectors, glm::vec3 const& eigenValues,
     volume::Mesh const& mesh, std::set<std::size_t> const& indices
 )
 {
@@ -233,7 +233,7 @@ arion::Sphere sphere::BoundingSphere::CalculateInitialBoundingSphere(
     {
         maxEigenValueIndex = 2;
     }
-    glm::dvec3 maxDispersionAxis = glm::normalize(eigenVectors[maxEigenValueIndex]);
+    glm::vec3 maxDispersionAxis = glm::normalize(eigenVectors[maxEigenValueIndex]);
 
     //Find extremal points on it
     size_t minVertexIndex = 0;
@@ -257,8 +257,8 @@ arion::Sphere sphere::BoundingSphere::CalculateInitialBoundingSphere(
 
     //Calculate sphere
     auto const diameter = glm::length(mesh.vertices[maxVertexIndex] - mesh.vertices[minVertexIndex]);
-    auto const radius = diameter / 2.0;
-    auto const center = (mesh.vertices[maxVertexIndex] - mesh.vertices[minVertexIndex]) / 2.0
+    auto const radius = diameter / 2.0f;
+    auto const center = (mesh.vertices[maxVertexIndex] - mesh.vertices[minVertexIndex]) / 2.0f
             + mesh.vertices[minVertexIndex];
 
     return arion::Sphere(center, {}, radius);
@@ -268,8 +268,8 @@ arion::Sphere sphere::BoundingSphere::RefineSphere(
     arion::Sphere const& sphere, volume::Mesh const& mesh, std::set<std::size_t> const& indices
 )
 {
-    double sphereRadius = sphere.radius;
-    glm::dvec3 sphereCenter = sphere.centerOfMass;
+    float sphereRadius = sphere.radius;
+    glm::vec3 sphereCenter = sphere.centerOfMass;
 
     //Find point outside of the sphere and resize sphere
     for (auto faceIndex : indices)
@@ -277,14 +277,14 @@ arion::Sphere sphere::BoundingSphere::RefineSphere(
         for (uint8_t i = 0; i < 3; ++i)
         {
             uint64_t const vertexIndex = mesh.indices[faceIndex][i];
-            glm::dvec3 const & vertex = mesh.vertices[vertexIndex];
-            glm::dvec3 const sphereVertexVec = vertex - sphereCenter;
-            double const sphereVertexNorm = glm::length(sphereVertexVec);
+            glm::vec3 const & vertex = mesh.vertices[vertexIndex];
+            glm::vec3 const sphereVertexVec = vertex - sphereCenter;
+            float const sphereVertexNorm = glm::length(sphereVertexVec);
 
             if (sphereVertexNorm > sphereRadius)
             {
-                glm::dvec3 oppositeSphereVertex = glm::normalize(sphereVertexVec) * -1.0 * sphereRadius + sphereCenter;
-                sphereCenter = (oppositeSphereVertex - vertex) / 2.0 + vertex;
+                glm::vec3 oppositeSphereVertex = glm::normalize(sphereVertexVec) * -1.0f * sphereRadius + sphereCenter;
+                sphereCenter = (oppositeSphereVertex - vertex) / 2.0f + vertex;
                 sphereRadius = glm::length(sphereCenter - oppositeSphereVertex);
             }
         }

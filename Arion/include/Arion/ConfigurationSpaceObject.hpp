@@ -22,7 +22,7 @@ namespace cso
 *
 *  @return point on the surface
 */
-inline glm::dvec3 LazySupport(Sphere const& sphere, glm::dvec3 direction)
+inline glm::vec3 LazySupport(Sphere const& sphere, glm::vec3 direction)
 {
     return sphere.centerOfMass + direction * sphere.radius;   
 }
@@ -37,7 +37,7 @@ inline glm::dvec3 LazySupport(Sphere const& sphere, glm::dvec3 direction)
 *
 *  @return point on the surface
 */
-inline glm::dvec3 Support(Sphere const& sphere, glm::dvec3 direction)
+inline glm::vec3 Support(Sphere const& sphere, glm::vec3 direction)
 {
     return LazySupport(sphere, direction);
 }
@@ -50,10 +50,10 @@ inline glm::dvec3 Support(Sphere const& sphere, glm::dvec3 direction)
 *
 *  @return point on the surface
 */
-inline glm::dvec3 LazySupport(Box const& box, glm::dvec3 direction)
+inline glm::vec3 LazySupport(Box const& box, glm::vec3 direction)
 {
-    double dot = 0;
-    double maxDot = glm::dot(box.vertices[0], direction);
+    float dot = 0;
+    float maxDot = glm::dot(box.vertices[0], direction);
     uint8_t maxIndex = 0;
     for (uint8_t i = 1; i < 8; ++i)
     {
@@ -76,7 +76,7 @@ inline glm::dvec3 LazySupport(Box const& box, glm::dvec3 direction)
 *
 *  @return point on the surface
 */
-inline glm::dvec3 Support(Box const& box, glm::dvec3 direction)
+inline glm::vec3 Support(Box const& box, glm::vec3 direction)
 {
     return LazySupport(box, glm::inverse(box.orientation) * direction);
 }
@@ -99,9 +99,9 @@ inline glm::dvec3 Support(Box const& box, glm::dvec3 direction)
 *  @return point on the surface
 */
 template < typename ShapeA, typename ShapeB >
-inline glm::dvec3 Support(ShapeA const& aShape, ShapeB const& bShape, glm::dvec3 direction)
+inline glm::vec3 Support(ShapeA const& aShape, ShapeB const& bShape, glm::vec3 direction)
 {
-    return LazySupport(aShape, direction) - LazySupport(bShape, -direction);
+    return Support(aShape, direction) - Support(bShape, -direction);
 }
 } // namespace cso
 } // namespace intersection

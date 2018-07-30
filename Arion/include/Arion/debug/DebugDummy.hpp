@@ -38,8 +38,8 @@ public:
         intersection::gjk::Simplex&,
         SimpleShape const&,
         SimpleShape const&,
-        glm::dvec3,
-        glm::dvec3)>;
+        glm::vec3,
+        glm::vec3)>;
 
     /**
      * @brief EPA debug call function
@@ -63,8 +63,8 @@ public:
         intersection::gjk::Simplex& simplex,
         SimpleShape const& aShape,
         SimpleShape const& bShape,
-        glm::dvec3 supportVertex,
-        glm::dvec3 direction
+        glm::vec3 supportVertex,
+        glm::vec3 direction
     )
     {
     }

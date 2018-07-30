@@ -19,10 +19,10 @@ class Shape
 {
 public:
     Shape() = default;
-    explicit Shape(glm::dvec3 centerOfMass, glm::dquat orientation = glm::angleAxis(0.0, glm::dvec3(0)));
+    explicit Shape(glm::vec3 centerOfMass, glm::quat orientation = glm::angleAxis(0.0f, glm::vec3(0)));
 
-    glm::dvec3 centerOfMass;
-    glm::dquat orientation;
+    glm::vec3 centerOfMass;
+    glm::quat orientation;
 };
 
 /**
@@ -53,17 +53,17 @@ public:
     {
     }
 
-    SimpleShape(glm::dvec3 centerOfMass, glm::dquat orientation, Type type);
+    SimpleShape(glm::vec3 centerOfMass, glm::quat orientation, Type type);
 };
 
 /** Ray data storage class */
 class Ray : public SimpleShape
 {
 public:
-    glm::dvec3 direction;
+    glm::vec3 direction;
 
     Ray();
-    Ray(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal);
+    Ray(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 normal);
 };
 
 /** Plane data storage class */
@@ -71,9 +71,9 @@ class Plane : public SimpleShape
 {
 public:
     Plane();
-    Plane(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 normal);
+    Plane(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 normal);
 
-    glm::dvec3 normal;
+    glm::vec3 normal;
 };
 
 /** Triangle data storage class */
@@ -81,15 +81,15 @@ class Triangle : public SimpleShape
 {
 public:
     Triangle();
-    Triangle(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, glm::dvec3 b, glm::dvec3 c);
+    Triangle(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 a, glm::vec3 b, glm::vec3 c);
 
     /** Calculates normal from member vertices and writes it to the normal member field */
     void CalculateNormal();
 
-    glm::dvec3 aVertex;
-    glm::dvec3 bVertex;
-    glm::dvec3 cVertex;
-    glm::dvec3 normal;
+    glm::vec3 aVertex;
+    glm::vec3 bVertex;
+    glm::vec3 cVertex;
+    glm::vec3 normal;
 };
 
 /** Sphere data storage class */
@@ -97,9 +97,9 @@ class Sphere : public SimpleShape
 {
 public:
     Sphere();
-    Sphere(glm::dvec3 centerOfMass, glm::dquat orientation, double r);
+    Sphere(glm::vec3 centerOfMass, glm::quat orientation, float r);
 
-    double radius;
+    float radius;
 };
 
 /** Cone data storage class */
@@ -107,10 +107,10 @@ class Cone : public SimpleShape
 {
 public:
     Cone();
-    Cone(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 a, double r);
+    Cone(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 a, float r);
 
-    glm::dvec3 apex;
-    double radius;
+    glm::vec3 apex;
+    float radius;
 };
 
 /** Capsule data storage class */
@@ -118,10 +118,10 @@ class Capsule : public SimpleShape
 {
 public:
     Capsule();
-    Capsule(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r);
+    Capsule(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 halfHeight, float r);
 
-    glm::dvec3 halfHeight;
-    double radius;
+    glm::vec3 halfHeight;
+    float radius;
 };
 
 /** Cylinder data storage class */
@@ -129,10 +129,10 @@ class Cylinder : public SimpleShape
 {
 public:
     Cylinder();
-    Cylinder(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 halfHeight, double r);
+    Cylinder(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 halfHeight, float r);
 
-    glm::dvec3 halfHeight;
-    double radius;
+    glm::vec3 halfHeight;
+    float radius;
 };
 
 /** Box data storage class */
@@ -140,13 +140,13 @@ class Box : public SimpleShape
 {
 public:
     Box();
-    Box(glm::dvec3 centerOfMass, glm::dquat orientation, glm::dvec3 i, glm::dvec3 j, glm::dvec3 k);
+    Box(glm::vec3 centerOfMass, glm::quat orientation, glm::vec3 i, glm::vec3 j, glm::vec3 k);
 
-    glm::dvec3 iAxis;
-    glm::dvec3 jAxis;
-    glm::dvec3 kAxis;
+    glm::vec3 iAxis;
+    glm::vec3 jAxis;
+    glm::vec3 kAxis;
 
-    glm::dvec3 vertices[8];
+    glm::vec3 vertices[8];
 };
 } // namespace arion
 #endif //ARION_SHAPE_HPP

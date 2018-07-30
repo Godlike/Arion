@@ -19,9 +19,9 @@ namespace
 *
 *  @return @c true if line passes though the origin, @c false otherwise
 */
-bool LineSegmentContainsOrigin(glm::dvec3 const& lineStart, glm::dvec3 const& lineEnd)
+bool LineSegmentContainsOrigin(glm::vec3 const& lineStart, glm::vec3 const& lineEnd)
 {
-    double const distance = epona::LineSegmentPointDistance(lineStart, lineEnd, glm::dvec3{});
+    float const distance = epona::LineSegmentPointDistance(lineStart, lineEnd, glm::vec3{});
     return epona::fp::IsZero(distance);
 }
 
@@ -36,9 +36,9 @@ bool LineSegmentContainsOrigin(glm::dvec3 const& lineStart, glm::dvec3 const& li
 *
 *  @return @c true if triangle contains the origin, @c false otherwise
 */
-bool TriangleContainsOrigin(glm::dvec3 const& a, glm::dvec3 const& b, glm::dvec3 const& c)
+bool TriangleContainsOrigin(glm::vec3 const& a, glm::vec3 const& b, glm::vec3 const& c)
 {
-    return intersection::IsPointInsideTriangle(a, b, c, glm::dvec3{});
+    return intersection::IsPointInsideTriangle(a, b, c, glm::vec3{});
 }
 
 /**
@@ -48,7 +48,7 @@ bool TriangleContainsOrigin(glm::dvec3 const& a, glm::dvec3 const& b, glm::dvec3
 *
 *  @return @c true if tetrahedron contains the origin, @c false otherwise
 */
-bool TetrahedronContainsOrigin(std::array<glm::dvec3, 4> const& vertices)
+bool TetrahedronContainsOrigin(std::array<glm::vec3, 4> const& vertices)
 {
     std::array<epona::HyperPlane, 4> const faces{ {
             epona::HyperPlane{ vertices[0], vertices[1], vertices[2], &vertices[3] },
@@ -72,14 +72,14 @@ bool TetrahedronContainsOrigin(std::array<glm::dvec3, 4> const& vertices)
 *
 *  @return new search direction
 */
-glm::dvec3 NearestSimplexLineSegment(intersection::gjk::Simplex& simplex)
+glm::vec3 NearestSimplexLineSegment(intersection::gjk::Simplex& simplex)
 {
-    glm::dvec3 const AB = simplex.vertices[0] - simplex.vertices[1];
-    glm::dvec3 const A0 = glm::dvec3{ 0, 0, 0 } -simplex.vertices[1];
+    glm::vec3 const AB = simplex.vertices[0] - simplex.vertices[1];
+    glm::vec3 const A0 = glm::vec3{ 0, 0, 0 } -simplex.vertices[1];
 
     if (intersection::IsAngleAcute(AB, A0))
     {
-        glm::dvec3 const direction = glm::cross(glm::cross(AB, A0), AB);
+        glm::vec3 const direction = glm::cross(glm::cross(AB, A0), AB);
         simplex.size = 2;
         return direction;
     }
@@ -99,19 +99,19 @@ glm::dvec3 NearestSimplexLineSegment(intersection::gjk::Simplex& simplex)
 *
 *  @return new search direction
 */
-glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
+glm::vec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
 {
-    glm::dvec3 const A = simplex.vertices[2];
-    glm::dvec3 const B = simplex.vertices[1];
-    glm::dvec3 const C = simplex.vertices[0];
+    glm::vec3 const A = simplex.vertices[2];
+    glm::vec3 const B = simplex.vertices[1];
+    glm::vec3 const C = simplex.vertices[0];
 
-    glm::dvec3 const AB = B - A;
-    glm::dvec3 const AC = C - A;
+    glm::vec3 const AB = B - A;
+    glm::vec3 const AC = C - A;
 
-    glm::dvec3 const A0 = glm::dvec3{ 0, 0, 0 } -A;
-    glm::dvec3 const ABC = glm::cross(AB, AC);
+    glm::vec3 const A0 = glm::vec3{ 0, 0, 0 } -A;
+    glm::vec3 const ABC = glm::cross(AB, AC);
 
-    glm::dvec3 result;
+    glm::vec3 result;
 
     if (intersection::IsAngleAcute(glm::cross(ABC, AC), -A))
     {
@@ -185,7 +185,7 @@ glm::dvec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
 *
 *  @sa NearestSimplexTriangle
 */
-glm::dvec3 NearestSimplexTetrahedron(intersection::gjk::Simplex& simplex)
+glm::vec3 NearestSimplexTetrahedron(intersection::gjk::Simplex& simplex)
 {
     uint8_t const simplices[3][3] = {
         {0, 1, 3},
@@ -193,7 +193,7 @@ glm::dvec3 NearestSimplexTetrahedron(intersection::gjk::Simplex& simplex)
         {0, 2, 3},
     };
 
-    double const planeOriginDistances[3] = {
+    float const planeOriginDistances[3] = {
         epona::HyperPlane{ simplex.vertices[0], simplex.vertices[1], simplex.vertices[3], &simplex.vertices[2] }.GetDistance(),
         epona::HyperPlane{ simplex.vertices[1], simplex.vertices[2], simplex.vertices[3], &simplex.vertices[0] }.GetDistance(),
         epona::HyperPlane{ simplex.vertices[0], simplex.vertices[2], simplex.vertices[3], &simplex.vertices[1] }.GetDistance()
@@ -233,7 +233,7 @@ bool intersection::gjk::SimplexContainsOrigin(Simplex const& simplex)
     return ::TetrahedronContainsOrigin(simplex.vertices);
 }
 
-glm::dvec3 intersection::gjk::NearestSimplex(Simplex& simplex)
+glm::vec3 intersection::gjk::NearestSimplex(Simplex& simplex)
 {
     if (2 == simplex.size)
     {
@@ -248,7 +248,7 @@ glm::dvec3 intersection::gjk::NearestSimplex(Simplex& simplex)
     return ::NearestSimplexTetrahedron(simplex);
 }
 
-bool intersection::gjk::DoSimplex(gjk::Simplex& simplex, glm::dvec3& direction)
+bool intersection::gjk::DoSimplex(gjk::Simplex& simplex, glm::vec3& direction)
 {
     //Check if a current simplex contains the origin
     if (SimplexContainsOrigin(simplex))
