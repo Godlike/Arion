@@ -22,7 +22,7 @@ bool intersection::CheckRaySphereIntersection(
     float const tCenter = glm::dot(raySphere, rayDirection);
     float const distanceSquare = glm::dot(raySphere, raySphere) - tCenter * tCenter;
 
-    return sphereRadius * sphereRadius - distanceSquare >= 0.0;
+    return sphereRadius * sphereRadius - distanceSquare >= 0.0f;
 }
 
 intersection::RayIntersectionFactors

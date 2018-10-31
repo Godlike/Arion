@@ -45,8 +45,8 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
     if (2 == simplex.size)
     {
         glm::vec3 const A0 = -simplex.vertices[1];
-        uint8_t const n = (epona::fp::IsNotEqual(A0[0], 0.0) ? 0 : (epona::fp::IsNotEqual(A0[1], 0.0) ? 1 : 2));
-        uint8_t const m = (n == 0 ? 1 : (n == 1 ? 2 : 1));
+        uint8_t const n = (epona::fp::IsNotEqual(A0[0], 0.0f) ? 0 : (epona::fp::IsNotEqual(A0[1], 0.0f) ? 1 : 2));
+        uint8_t const m = (n < 2 ? (n + 1) : 1);
 
         glm::vec3 orthogonalDirection;
         orthogonalDirection[n] = A0[m];
@@ -165,10 +165,10 @@ ContactManifold CalculateContactManifold(
         glm::vec3 const aSupportVertex = cso::Support(aShape,  direction);
         glm::vec3 const bSupportVertex = cso::Support(bShape, -direction);
         glm::vec3 const supportVertex  = cso::Support(aShape, bShape, direction);
-        float const supportVertexDistanceSing = glm::dot(supportVertex, direction);
+        float const supportVertexDistanceSigned = glm::dot(supportVertex, direction);
 
         //Check if we can expand polytope in the new direction
-        endEpa = !(epona::fp::IsGreater(supportVertexDistanceSing, closestFaceDistance) && --maxIterations);
+        endEpa = !(epona::fp::IsGreater(supportVertexDistanceSigned, closestFaceDistance) && --maxIterations);
         if (!endEpa)
         {
             //Expand polytope if possible
