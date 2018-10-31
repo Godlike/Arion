@@ -108,7 +108,7 @@ glm::vec3 NearestSimplexTriangle(intersection::gjk::Simplex& simplex)
     glm::vec3 const AB = B - A;
     glm::vec3 const AC = C - A;
 
-    glm::vec3 const A0 = glm::vec3{ 0, 0, 0 } -A;
+    glm::vec3 const A0 = glm::vec3{ 0, 0, 0 } - A;
     glm::vec3 const ABC = glm::cross(AB, AC);
 
     glm::vec3 result;

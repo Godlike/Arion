@@ -40,7 +40,7 @@ glm::vec3 volume::CalculateMeanVertex(volume::Mesh const& mesh, std::set<std::si
 glm::mat3 volume::CalculateCovarianceMatrix(
     volume::Mesh const& mesh, std::set<std::size_t> const& indices, glm::vec3 const& mean)
 {
-    glm::mat3 c(0.0);
+    glm::mat3 c(0.0f);
 
     for (auto index : indices)
     {
