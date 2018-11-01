@@ -78,14 +78,15 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
         glm::vec3 const a = cso::Support(aShape, bShape,  normal);
         glm::vec3 const b = cso::Support(aShape, bShape, -normal);
 
-        simplex.supportVertices[3] = hyperPlane.SignedDistance(a) > hyperPlane.SignedDistance(b)
+        bool const aFartherThanB = (hyperPlane.SignedDistance(a) > hyperPlane.SignedDistance(b)
+            && std::find(simplex.vertices.begin(), simplex.vertices.begin() + 3, a) == simplex.vertices.begin() + 3);
+
+        simplex.supportVertices[3] = aFartherThanB
             ? gjk::Simplex::SupportVertices{ cso::Support(aShape,  normal), cso::Support(bShape, -normal) }
             : gjk::Simplex::SupportVertices{ cso::Support(aShape, -normal), cso::Support(bShape,  normal) };
 
         simplex.vertices[3] = simplex.supportVertices[3].aSupportVertex - simplex.supportVertices[3].bSupportVertex;
         ++simplex.size;
-
-    }
 
 #ifndef NDEBUG
         for (uint8_t i = 0; i < 4; ++i)
@@ -98,6 +99,20 @@ void BlowUpPolytope(arion::intersection::gjk::Simplex& simplex, ShapeA const& aS
                 }
             }
         }
+#endif
+    }
+
+#ifndef NDEBUG
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+        for (uint8_t j = 0; j < 4; ++j)
+        {
+            if (i != j)
+            {
+                assert(simplex.vertices[i] != simplex.vertices[j]);
+            }
+        }
+    }
 #endif
     }
 } // namespace ::
@@ -133,6 +148,7 @@ ContactManifold CalculateContactManifold(
 
     //Initialize polytope and calculate initial convex hull
     std::vector<glm::vec3> polytopeVertices{ simplex.vertices.begin(), simplex.vertices.end() };
+	epona::CalculateConvexHull(polytopeVertices);
     ConvexHull convexHull(polytopeVertices);
     convexHull.Calculate();
     std::vector<gjk::Simplex::SupportVertices> supportVertices{

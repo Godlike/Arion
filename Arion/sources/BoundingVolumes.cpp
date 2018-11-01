@@ -102,9 +102,7 @@ obb::OrientedBoundingBox::OrientedBoundingBox(volume::Mesh const& mesh, std::set
     //Todo: implement convex hull step
     m_box.mean = volume::CalculateMeanVertex(m_shape, m_indices);
     m_box.covariance = volume::CalculateCovarianceMatrix(m_shape, m_indices, m_box.mean);
-
-    epona::JacobiEigenvalue jacobiEigen(m_box.covariance);
-    m_box.eigenVectors = jacobiEigen.GetEigenvectors();
+    m_box.eigenVectors = epona::CalculateJacobiEigenvectors(m_box.covariance);
     m_box.extremalVertices = volume::CalculateExtremalVertices(m_box.eigenVectors, m_shape, m_indices);
 
     for (uint8_t i = 0; i < 3; ++i) {
@@ -204,10 +202,7 @@ sphere::BoundingSphere::BoundingSphere(volume::Mesh const& mesh, std::set<std::s
 {
     m_sphere.mean = volume::CalculateMeanVertex(mesh, indices);
     m_sphere.covariance = volume::CalculateCovarianceMatrix(mesh, indices, m_sphere.mean);
-
-    epona::JacobiEigenvalue jacobiEigen(m_sphere.covariance);
-    m_sphere.eigenValues = jacobiEigen.GetEigenvalues();
-    m_sphere.eigenVectors = jacobiEigen.GetEigenvectors();
+    std::tie(m_sphere.eigenVectors, m_sphere.eigenValues) = epona::CalculateJacobiEigenvectorsEigenvalue(m_sphere.covariance);
 
     for (uint8_t i = 0; i < 3; ++i) {
         m_sphere.eigenVectorsNormalized[i] = glm::normalize(m_sphere.eigenVectors[i]);
