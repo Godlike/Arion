@@ -6,6 +6,7 @@
 #ifndef ARION_DEBUG_IMPLEMENTATION_HPP
 #define ARION_DEBUG_IMPLEMENTATION_HPP
 
+#include <vector>
 #include <functional>
 #include <glm/glm.hpp>
 
@@ -20,8 +21,7 @@ class SimpleShape;
 }
 
 namespace epona {
-template < typename T>
-class QuickhullConvexHull;
+struct ConvexHull;
 }
 
 namespace arion
@@ -33,10 +33,9 @@ namespace debug
 class DebugImplementation
 {
 public:
-    template < typename ConvexHullBuffer >
     using EpaCallback = std::function<void(
-        epona::QuickhullConvexHull<ConvexHullBuffer>&,
-        ConvexHullBuffer&,
+		epona::ConvexHull&,
+        std::vector<glm::vec3>&,
         intersection::gjk::Simplex&,
         SimpleShape const&,
         SimpleShape const&,
@@ -51,8 +50,6 @@ public:
      * It then proxies all the arguments to the currently
      * set callback functor.
      * 
-     * @tparam ConvexHullBuffer convex hull vertex buffer type
-     * 
      * @param[in] convexHull        current convex hull containing cso
      * @param[in] vertexBuffer      current vertex buffer for the convex hull
      * @param[in] simplex           gjk simplex
@@ -61,10 +58,9 @@ public:
      * @param[in] supportVertex     current support vertex
      * @param[in] direction         current search direction
      */
-    template < typename ConvexHullBuffer >
     static void EpaCall(
-            epona::QuickhullConvexHull<ConvexHullBuffer>& convexHull,
-            ConvexHullBuffer& vertexBuffer,
+			epona::ConvexHull& convexHull,
+		std::vector<glm::vec3>& vertexBuffer,
             intersection::gjk::Simplex& simplex,
             SimpleShape const& aShape,
             SimpleShape const& bShape,
@@ -72,7 +68,7 @@ public:
             glm::vec3 direction
         )
     {
-        GetEpaCallback<ConvexHullBuffer>()(
+        GetEpaCallback()(
             convexHull, vertexBuffer, simplex, aShape, bShape, supportVertex, direction
         );
     }
@@ -80,14 +76,11 @@ public:
     /**
      * @brief Sets new callback for the EPA debug
      * 
-     * @tparam ConvexHullBuffer convex hull buffer type
-     * 
      * @param callback new callback function
      */
-    template < typename ConvexHullBuffer >
-    static void SetEpaCallback(EpaCallback<ConvexHullBuffer> callback)
+    static void SetEpaCallback(EpaCallback callback)
     {
-        GetEpaCallback<ConvexHullBuffer>() = callback;
+        GetEpaCallback() = callback;
     }
 
     /**
@@ -122,14 +115,11 @@ private:
     /**
      * @brief Returns reference to the current EPA debug callback
      * 
-     * @tparam ConvexHullBuffer convex hull buffer type
-     * 
      * @return current callback
      */
-    template < typename ConvexHullBuffer >
-    static EpaCallback<ConvexHullBuffer>& GetEpaCallback()
+    static EpaCallback& GetEpaCallback()
     {
-        static EpaCallback<ConvexHullBuffer> epaCallback = DummyEpaCallback<ConvexHullBuffer>;
+        static EpaCallback epaCallback = DummyEpaCallback;
         return epaCallback;
     }
 
@@ -140,13 +130,10 @@ private:
     * @brief EPA debug call function
     *
     * @note This is an empty function for the callback initialization
-    * 
-    * @tparam ConvexHullBuffer convex hull vertex buffer type
     */
-    template < typename ConvexHullBuffer >
     static void DummyEpaCallback(
-        epona::QuickhullConvexHull<ConvexHullBuffer>&,
-        ConvexHullBuffer&,
+        epona::ConvexHull&,
+        std::vector<glm::vec3>&,
         arion::intersection::gjk::Simplex&,
         arion::SimpleShape const&,
         arion::SimpleShape const&,

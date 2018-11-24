@@ -253,7 +253,25 @@ bool intersection::gjk::DoSimplex(gjk::Simplex& simplex, glm::vec3& direction)
     //Check if a current simplex contains the origin
     if (SimplexContainsOrigin(simplex))
     {
-        return true;
+		//FixMe: Note this check prevents (not always) degenerate polytops from going to QHull, but degrates perfomance, is it worth it?
+		bool result = true;
+		switch (simplex.size)
+		{
+			case 3:
+				result = !epona::OneLine(simplex.vertices[0], simplex.vertices[1], simplex.vertices[2]);
+				break;
+			case 4:
+				result = !epona::OneLine(simplex.vertices[0], simplex.vertices[1], simplex.vertices[2])
+					&& !epona::OneLine(simplex.vertices[0], simplex.vertices[1], simplex.vertices[3])
+					&& !epona::OneLine(simplex.vertices[0], simplex.vertices[2], simplex.vertices[3])
+					&& !epona::OneLine(simplex.vertices[1], simplex.vertices[2], simplex.vertices[3]);
+				break;
+			default:
+				break;
+		}
+
+		if (result)
+			return true;
     }
 
     //Calculate sub simplex nearest to the origin
