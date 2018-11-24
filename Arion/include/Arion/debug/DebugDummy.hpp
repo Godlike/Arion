@@ -6,6 +6,7 @@
 #ifndef ARION_DEBUG_DUMMY_HPP
 #define ARION_DEBUG_DUMMY_HPP
 
+#include <vector>
 #include <functional>
 #include <glm/glm.hpp>
 
@@ -20,8 +21,7 @@ class SimpleShape;
 }
 
 namespace epona {
-template < typename T>
-class QuickhullConvexHull;
+struct ConvexHull;
 }
 namespace arion
 {
@@ -31,10 +31,9 @@ namespace debug
 class DebugDummy
 {
 public:
-    template < typename ConvexHullBuffer >
     using EpaCallback = std::function<void(
-        epona::QuickhullConvexHull<ConvexHullBuffer>&,
-        ConvexHullBuffer&,
+        epona::ConvexHull&,
+        std::vector<glm::vec3>&,
         intersection::gjk::Simplex&,
         SimpleShape const&,
         SimpleShape const&,
@@ -46,8 +45,6 @@ public:
      *
      * @note This is a dummy method that should be optimized away
      *
-     * @tparam ConvexHullBuffer convex hull vertex buffer type
-     *
      * @param[in] convexHull        current convex hull containing cso
      * @param[in] vertexBuffer      current vertex buffer for the convex hull
      * @param[in] simplex           gjk simplex
@@ -56,10 +53,9 @@ public:
      * @param[in] supportVertex     current support vertex
      * @param[in] direction         current search direction
      */
-    template < typename ConvexHullBuffer >
     static void EpaCall(
-        epona::QuickhullConvexHull<ConvexHullBuffer>& convexHull,
-        ConvexHullBuffer& vertexBuffer,
+        epona::ConvexHull& convexHull,
+        std::vector<glm::vec3>& vertexBuffer,
         intersection::gjk::Simplex& simplex,
         SimpleShape const& aShape,
         SimpleShape const& bShape,
@@ -78,8 +74,7 @@ public:
      *
      * @param callback new callback function
      */
-    template < typename ConvexHullBuffer >
-    static void SetEpaCallback(EpaCallback<ConvexHullBuffer> callback)
+    static void SetEpaCallback(EpaCallback callback)
     {
     }
 

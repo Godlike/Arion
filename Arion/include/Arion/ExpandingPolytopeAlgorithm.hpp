@@ -141,41 +141,38 @@ ContactManifold CalculateContactManifold(
         ShapeA const& aShape, ShapeB const& bShape, gjk::Simplex simplex, uint8_t maxIterations = 100
     )
 {
-    using ConvexHull = epona::QuickhullConvexHull<std::vector<glm::vec3>>;
-
     //Blow up initial simplex if needed
     ::BlowUpPolytope(simplex, aShape, bShape);
 
     //Initialize polytope and calculate initial convex hull
     std::vector<glm::vec3> polytopeVertices{ simplex.vertices.begin(), simplex.vertices.end() };
-	epona::CalculateConvexHull(polytopeVertices);
-    ConvexHull convexHull(polytopeVertices);
-    convexHull.Calculate();
+	epona::ConvexHull convexHull = epona::CalculateConvexHull(polytopeVertices);
     std::vector<gjk::Simplex::SupportVertices> supportVertices{
         simplex.supportVertices.begin(), simplex.supportVertices.end()
     };
 
     //Support information
-    ConvexHull::Faces::const_iterator face;
+	std::vector<glm::u32vec3>::const_iterator faceIt;
     float closestFaceDistance;
     glm::vec3 direction;
     bool endEpa;
 
     //Debug call
-    debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, {}, {});
+    //debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, {}, {});
 
     do
     {
         //Get distance and direction to the polytope's face that is nearest to the origin
-        ConvexHull::Faces const& chFaces = convexHull.GetFaces();
-        face = std::min_element(chFaces.begin(), chFaces.end(),
-            [](ConvexHull::Face const& a, ConvexHull::Face const& b) -> bool
+		auto& heds = convexHull.heds;
+        faceIt = std::min_element(convexHull.faces.begin(), convexHull.faces.end(),
+            [&heds](glm::u32vec3 a, glm::u32vec3 b) -> bool
         {
-            return a.GetHyperPlane().GetDistance() < b.GetHyperPlane().GetDistance();
+			return heds.GetFace(a)->hyperPlane.GetDistance() < heds.GetFace(b)->hyperPlane.GetDistance();
         });
-        direction = face->GetHyperPlane().GetNormal();
+        direction = heds.GetFace(*faceIt)->hyperPlane.GetNormal();
         assert(!glm::isnan(direction.x));
-        closestFaceDistance = face->GetHyperPlane().Distance({0, 0, 0});
+		//FixMe: Replace with glm::abs(hyperPlane.GetDistance())
+        closestFaceDistance = heds.GetFace(*faceIt)->hyperPlane.Distance({0, 0, 0});
 
         //Find next CSO point using new search direction
         glm::vec3 const aSupportVertex = cso::Support(aShape,  direction);
@@ -190,7 +187,7 @@ ContactManifold CalculateContactManifold(
             //Expand polytope if possible
             polytopeVertices.push_back( supportVertex );
             supportVertices.push_back(gjk::Simplex::SupportVertices{ aSupportVertex, bSupportVertex });
-            if (!convexHull.AddVertex(polytopeVertices.size() - 1))
+            if (!epona::RecalculateConvexHull(convexHull, polytopeVertices))
             {
                 polytopeVertices.pop_back();
                 supportVertices.pop_back();
@@ -198,28 +195,22 @@ ContactManifold CalculateContactManifold(
         }
 
         //Debug call
-        debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, supportVertex, direction);
+        //debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, supportVertex, direction);
     }
     //If no expansion is possible and or max iterations is reached end EPA
     while (!endEpa);
 
     //Find point on the CSO that is nearest to the origin, this is the contact point
-    std::array<size_t, 3> const faceIndices = face->GetIndices();
-    std::array<glm::vec3, 3> const faceVertices{{
-        polytopeVertices[faceIndices[0]],
-        polytopeVertices[faceIndices[1]],
-        polytopeVertices[faceIndices[2]],
-    }};
-    glm::vec3 const polytopeContactPoint = face->GetHyperPlane().ClosestPoint(glm::vec3{ 0, 0, 0 });
+    glm::vec3 const polytopeContactPoint = convexHull.heds.GetFace(*faceIt)->hyperPlane.ClosestPoint({ 0, 0, 0 });
 
     //Calculate borycentric coordinates of the CSO contact point
     glm::vec3 const xyz = epona::CalculateBarycentricCoordinates(
-        polytopeContactPoint, faceVertices[0], faceVertices[1], faceVertices[2]
+        polytopeContactPoint, polytopeVertices[(*faceIt)[0]], polytopeVertices[(*faceIt)[1]], polytopeVertices[(*faceIt)[2]]
     );
 
     //Calculate contact points on the primitives
     std::array<gjk::Simplex::SupportVertices, 3> const supportFaceVertices{{
-        supportVertices[faceIndices[0]], supportVertices[faceIndices[1]], supportVertices[faceIndices[2]] }};
+        supportVertices[(*faceIt)[0]], supportVertices[(*faceIt)[1]], supportVertices[(*faceIt)[2]] }};
     glm::vec3 const aContactPointWorld = supportFaceVertices[0].aSupportVertex * xyz.x
         + supportFaceVertices[1].aSupportVertex * xyz.y
         + supportFaceVertices[2].aSupportVertex * xyz.z;
@@ -228,7 +219,7 @@ ContactManifold CalculateContactManifold(
         + supportFaceVertices[2].bSupportVertex * xyz.z;
 
     //Debug call
-    debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, polytopeContactPoint, direction);
+    //debug::Debug::EpaCall(convexHull, polytopeVertices, simplex, aShape, bShape, polytopeContactPoint, direction);
 
     ContactManifold const manifold
     {
