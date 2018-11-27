@@ -34,7 +34,7 @@ class DebugImplementation
 {
 public:
     using EpaCallback = std::function<void(
-		epona::ConvexHull&,
+        epona::ConvexHull&,
         std::vector<glm::vec3>&,
         intersection::gjk::Simplex&,
         SimpleShape const&,
@@ -44,23 +44,23 @@ public:
 
     /**
      * @brief EPA debug call function
-     * 
+     *
      * This method is called from within the EPA function
-     * during the calculation. The method is called on every iteration of the EPA. 
+     * during the calculation. The method is called on every iteration of the EPA.
      * It then proxies all the arguments to the currently
      * set callback functor.
-     * 
+     *
      * @param[in] convexHull        current convex hull containing cso
      * @param[in] vertexBuffer      current vertex buffer for the convex hull
      * @param[in] simplex           gjk simplex
-     * @param[in] aShape            first shape 
+     * @param[in] aShape            first shape
      * @param[in] bShape            second shape
      * @param[in] supportVertex     current support vertex
      * @param[in] direction         current search direction
      */
     static void EpaCall(
-			epona::ConvexHull& convexHull,
-		std::vector<glm::vec3>& vertexBuffer,
+            epona::ConvexHull& convexHull,
+            std::vector<glm::vec3>& vertexBuffer,
             intersection::gjk::Simplex& simplex,
             SimpleShape const& aShape,
             SimpleShape const& bShape,
@@ -75,7 +75,7 @@ public:
 
     /**
      * @brief Sets new callback for the EPA debug
-     * 
+     *
      * @param callback new callback function
      */
     static void SetEpaCallback(EpaCallback callback)
@@ -85,14 +85,14 @@ public:
 
     /**
      * @brief GJK debug function
-     * 
+     *
      * This method is called from within the GJK function
-     * during the calculation. The method is called on every iteration of the GJK. 
+     * during the calculation. The method is called on every iteration of the GJK.
      * It then proxies all the arguments to the currently
      * set callback functor.
-     * 
+     *
      * @param[in] simplex   current simplex
-     * @param[in] end       true if GJK ended 
+     * @param[in] end       true if GJK ended
      */
     static void GjkCall(arion::intersection::gjk::Simplex& simplex, bool end)
     {
@@ -101,7 +101,7 @@ public:
 
     /**
      * @brief Sets GJK debug callback
-     * 
+     *
      * @param callback new GJK debug callback function
      */
     static void SetGjkCallback(
@@ -114,7 +114,7 @@ public:
 private:
     /**
      * @brief Returns reference to the current EPA debug callback
-     * 
+     *
      * @return current callback
      */
     static EpaCallback& GetEpaCallback()
