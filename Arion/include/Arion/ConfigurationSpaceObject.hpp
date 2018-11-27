@@ -13,7 +13,7 @@ namespace arion
 namespace intersection
 {
 namespace cso
-{   
+{
 /**
 *  @brief  Calculates farthest vertex on the surface of the sphere in given direction
 *
@@ -24,7 +24,7 @@ namespace cso
 */
 inline glm::vec3 LazySupport(Sphere const& sphere, glm::vec3 direction)
 {
-    return sphere.centerOfMass + direction * sphere.radius;   
+    return sphere.centerOfMass + direction * sphere.radius;
 }
 
 /**
