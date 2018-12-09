@@ -124,9 +124,9 @@ bool CalculateSimplex(
     } while (!DoSimplex(simplex, direction) && --maxIterations);
 
     //Debug call
-    debug::Debug::GjkCall(simplex, true);
+    debug::Debug::GjkCall(simplex, static_cast<bool>(maxIterations));
 
-    return true;
+    return static_cast<bool>(maxIterations);
 }
 
 /**
