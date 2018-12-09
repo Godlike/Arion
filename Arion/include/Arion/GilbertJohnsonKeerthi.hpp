@@ -97,7 +97,7 @@ bool DoSimplex(gjk::Simplex& simplex, glm::vec3& direction);
  */
 template <typename ShapeA, typename ShapeB>
 bool CalculateSimplex(
-        Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::vec3 direction, uint8_t maxIterations = 100
+        Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, glm::vec3 direction, uint8_t maxIterations = 10
     )
 {
     glm::quat const inverseOrientationA = glm::inverse(aShape.orientation);
@@ -107,8 +107,8 @@ bool CalculateSimplex(
     {
         //Add new vertex to the simplex
         simplex.supportVertices[simplex.size++] = {
-            cso::LazySupport(aShape, inverseOrientationA *  direction),
-            cso::LazySupport(bShape, inverseOrientationB * -direction),
+            cso::LazySupport(aShape,  direction, inverseOrientationA),
+            cso::LazySupport(bShape, -direction, inverseOrientationB),
         };
         simplex.vertices[simplex.size - 1] = simplex.supportVertices[simplex.size - 1].aSupportVertex
             - simplex.supportVertices[simplex.size - 1].bSupportVertex;
@@ -165,9 +165,9 @@ bool CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape, uint8_t m
  * @sa CalculateSimplex, CalculateIntersection(ShapeA const& aShape, ShapeB const& bShape)
  */
 template <typename ShapeA, typename ShapeB>
-bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 10)
+bool CalculateIntersection(Simplex& simplex, ShapeA const& aShape, ShapeB const& bShape, uint8_t maxIterations = 100)
 {
-    glm::vec3 const direction = glm::normalize(glm::vec3{ 1,1,1 });
+    glm::vec3 const direction = glm::normalize(glm::vec3{ 1.f, 1.f, 1.f });
 
     simplex.size = 1;
     simplex.supportVertices[0] = { cso::LazySupport(aShape, direction), cso::LazySupport(bShape, -direction) };

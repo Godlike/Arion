@@ -30,10 +30,27 @@ inline glm::vec3 LazySupport(Sphere const& sphere, glm::vec3 direction)
 /**
 *  @brief  Calculates farthest vertex on the surface of the sphere in given direction
 *
+*  @param  sphere      shape object
+*  @param  direction   normalized world space search vector
+*  @param  inverseOrientation inverse orientation quaternion
+*
+*  @note @param inverseOrientation is not used and only present for polymorphic behaviour features
+*
+*  @return point on the surface
+*/
+inline glm::vec3 LazySupport(Sphere const& sphere, glm::vec3 direction, glm::quat inverseOrientation)
+{
+    return LazySupport(sphere, direction);
+}
+
+/**
+*  @brief  Calculates farthest vertex on the surface of the sphere in given direction
+*
 *  @note   This is an alias for the corresponding LazySupport function
 *
 *  @param  sphere      shape object
 *  @param  direction   normalized world space search vector
+*  @param  inverseOrientation inverse orientation quaternion
 *
 *  @return point on the surface
 */
@@ -66,6 +83,22 @@ inline glm::vec3 LazySupport(Box const& box, glm::vec3 direction)
     }
 
     return box.orientation * box.vertices[maxIndex] + box.centerOfMass;
+}
+
+/**
+*  @brief  Calculates farthest vertex on the surface of the box in given direction
+*
+*  @param  box         shape object
+*  @param  direction   normalized world space search vector
+*  @param  inverseOrientation inverse box world orientation quaternion
+*
+*  @return point on the surface
+*/
+inline glm::vec3 LazySupport(Box const& box, glm::vec3 direction, glm::quat inverseOrientation)
+{
+    direction = inverseOrientation * direction;
+
+    return LazySupport(box, direction);
 }
 
 /**
