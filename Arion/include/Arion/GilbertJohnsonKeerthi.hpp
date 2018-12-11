@@ -113,18 +113,30 @@ bool CalculateSimplex(
         simplex.vertices[simplex.size - 1] = simplex.supportVertices[simplex.size - 1].aSupportVertex
             - simplex.supportVertices[simplex.size - 1].bSupportVertex;
 
-        //Debug call
-        debug::Debug::GjkCall(simplex, false);
+        //If next best choice within zero distance threshold - end GJK
+        for (uint8_t i = 0; i < simplex.size - 1; ++i)
+        {
+            if (epona::fp::IsZero(glm::distance(simplex.vertices[i], simplex.vertices[simplex.size - 1])))
+            {
+                simplex.size--;
+                debug::Debug::GjkCall(simplex, true);
+                return false;
+            }
+        }
 
         //Calculate if the new vertex is past the origin
         if (epona::fp::IsLess(glm::dot(simplex.vertices[simplex.size - 1], direction), 0.0f))
         {
+            debug::Debug::GjkCall(simplex, true);
             return false;
         }
+
+        //Debug call
+        debug::Debug::GjkCall(simplex, false);
     } while (!DoSimplex(simplex, direction) && --maxIterations);
 
     //Debug call
-    debug::Debug::GjkCall(simplex, static_cast<bool>(maxIterations));
+    debug::Debug::GjkCall(simplex, true);
 
     return static_cast<bool>(maxIterations);
 }
