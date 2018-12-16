@@ -7,7 +7,15 @@ cmake_minimum_required (VERSION 3.1)
 include(ArionConfig)
 
 project(${ARION_NAME})
-set(CMAKE_CXX_STANDARD 14)
+
+set(ARION_LIB_ALIAS Arion::Collision)
+
+add_library(${PROJECT_NAME} "")
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_library(${ARION_LIB_ALIAS} ALIAS ${PROJECT_NAME})
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -25,10 +33,6 @@ if (NOT EPONA_FOUND)
 endif()
 
 #Target
-include_directories(
-    ${ARION_INCLUDE_DIR}
-)
-
 message(STATUS "Version: ${ARION_VERSION}")
 
 set(ARION_HEADERS
@@ -67,25 +71,33 @@ if (MSVC)
     )
 endif()
 
-add_library(${ARION_LIB}
-    ${ARION_HEADERS}
-    ${ARION_SOURCES}
+target_sources(${PROJECT_NAME}
+    PRIVATE
+        ${ARION_HEADERS}
+        ${ARION_SOURCES}
 )
 
-target_compile_definitions(${ARION_LIB} PUBLIC ${ARION_DEFINITIONS})
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+        ${ARION_DEFINITIONS}
+)
 
-target_include_directories(${ARION_LIB} PUBLIC
-    ${EPONA_INCLUDE_DIR}
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        ${ARION_INCLUDE_DIR}
 )
 
 set_target_properties(
-    ${ARION_LIB}
+    ${PROJECT_NAME}
     PROPERTIES
         VERSION ${ARION_VERSION}
         SOVERSION ${ARION_SOVERSION}
 )
 
-target_link_libraries(${ARION_LIB} ${EPONA_LIB})
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        Epona::Math
+)
 
 install( DIRECTORY ${GLM_INCLUDE_DIR}/glm
     DESTINATION ${ARION_INSTALL_INCLUDE_DIR}
@@ -99,7 +111,7 @@ install( DIRECTORY ${GLM_INCLUDE_DIR}/glm
             PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )
 
-install( TARGETS ${ARION_LIB}
+install( TARGETS ${PROJECT_NAME}
     COMPONENT arion_libraries
     RUNTIME DESTINATION ${ARION_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${ARION_INSTALL_LIBRARY_DIR}
@@ -116,22 +128,27 @@ install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
     VERSION ${ARION_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
 configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ArionCollisionConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfig.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake.gen
 
     @ONLY
 )
 
+file(GENERATE
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INPUT ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake.gen
+)
+
 install(
     FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/ArionCollisionConfigVersion.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
     DESTINATION ${ARION_INSTALL_LIBRARY_DIR}
     COMPONENT arion_headers
 )
