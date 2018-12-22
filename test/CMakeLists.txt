@@ -7,7 +7,7 @@ cmake_policy(VERSION 3.0)
 
 project(ArionTests)
 
-include_directories(${ARION_INCLUDE_DIR} ${CATCH_ROOT}/single_include)
+include_directories(${ARION_INCLUDE_DIR} ${CATCH_ROOT}/single_include/catch2)
 
 function(arion_add_test)
     set(options)
